@@ -1,18 +1,19 @@
 #importing Functions
 from Functions import *
 
-path = r'c:\Users\PipeFlow\Desktop\test.tdms'
+#fetching file data
+experiment = '10p_experiment1'
+data = sql_data(experiment)
+pressure = data[0]
 
-
-Start = 0
-End = 50
+#time slice
+Start = 2600
+End = 2700
 
 #pressure readings
-pressure = tdms_df(path)
 smooth = pressure_df_smooth(pressure)
 rough = pressure_df_rough(pressure)
 pres = smooth.merge(rough, left_index=True, right_index=True)
-#pres['sum'] = (pres['Validyne8-24']+pres['Validyne 6-32'])
 
 #pressure slices
 sslice = pressure_slice_df(smooth, Start, End)
@@ -52,43 +53,43 @@ print(pdrop)
 print(reyslice['Reynolds Number'].max()-reyslice['Reynolds Number'].min())
 
 
-# #Reynolds Slice, Slice, and psd
-# fig, ax = plt.subplots(3,1)
-# ax[0].plot(reyslice['Reynolds Number'])
-# ax[0].legend(['Reynolds'], loc='upper right')
-# ax[0].set_ylabel('Reynolds Number')
-# ax[0].grid(True, which = 'both')
-# ax[1].plot(pslice)
-# ax[1].plot(reys64slice)
-# ax[1].plot(blasslice)
-# ax[1].plot(haalslice)
-# ax[1].legend(["Smooth", "Rough", '64/Re', 'Blasius', 'Haaland'], loc='upper right')
-# ax[1].set_ylabel('Pressure (mBarr)')
-# ax[1].grid(True, which = 'both')
-# ax[2].plot(ppsd)
-# ax[2].plot(ppsd1)
-# ax[2].legend(['Smooth PSD', 'Rough PSD'], loc='upper right')
-# ax[2].set_ylabel('Percent of Energy')
-# ax[2].grid(True, which = 'both')
+#Reynolds Slice, Slice, and psd
+fig, ax = plt.subplots(3,1)
+ax[0].plot(reyslice['Reynolds Number'])
+ax[0].legend(['Reynolds'], loc='upper right')
+ax[0].set_ylabel('Reynolds Number')
+ax[0].grid(True, which = 'both')
+ax[1].plot(pslice)
+ax[1].plot(reys64slice)
+ax[1].plot(blasslice)
+ax[1].plot(haalslice)
+ax[1].legend(["Smooth", "Rough", '64/Re', 'Blasius', 'Haaland'], loc='upper right')
+ax[1].set_ylabel('Pressure (mBarr)')
+ax[1].grid(True, which = 'both')
+ax[2].plot(ppsd)
+ax[2].plot(ppsd1)
+ax[2].legend(['Smooth PSD', 'Rough PSD'], loc='upper right')
+ax[2].set_ylabel('Percent of Energy')
+ax[2].grid(True, which = 'both')
 
-# #Reynolds number, Reynolds std, preasure slice
-# fig, ax = plt.subplots(3,1, sharex= True)
-# ax[0].plot(reynolds['Reynolds Number'])
-# ax[0].legend(['Reynolds'], loc='upper right')
-# ax[0].set_ylabel('Reynolds')
-# ax[0].grid(True, which = 'both')
-# ax[1].plot(reystd)
-# ax[1].legend(["Reynolds"], loc='upper right')
-# ax[1].set_ylabel('Standard Deviation')
-# ax[1].grid(True, which = 'both')
-# ax[2].plot(smooth)
-# ax[2].plot(rough)
-# ax[2].plot(reys64)
-# ax[2].plot(blas)
-# ax[2].plot(haal)
-# ax[2].legend(["Smooth", "Rough", '64/Re', 'Blasius', 'Haaland'], loc='upper right')
-# ax[2].set_ylabel('Pressure (mBarr)')
-# ax[2].grid(True, which = 'both')
+#Reynolds number, Reynolds std, preasure
+fig, ax = plt.subplots(3,1, sharex= True)
+ax[0].plot(reynolds['Reynolds Number'])
+ax[0].legend(['Reynolds'], loc='upper right')
+ax[0].set_ylabel('Reynolds')
+ax[0].grid(True, which = 'both')
+ax[1].plot(reystd)
+ax[1].legend(["Reynolds"], loc='upper right')
+ax[1].set_ylabel('Standard Deviation')
+ax[1].grid(True, which = 'both')
+ax[2].plot(smooth)
+ax[2].plot(rough)
+ax[2].plot(reys64)
+ax[2].plot(blas)
+ax[2].plot(haal)
+ax[2].legend(["Smooth", "Rough", '64/Re', 'Blasius', 'Haaland'], loc='upper right')
+ax[2].set_ylabel('Pressure (mBarr)')
+ax[2].grid(True, which = 'both')
 
 #Reynolds slice, preasure slice
 fig, ax = plt.subplots(2,1, sharex= True)
