@@ -7,6 +7,43 @@ from matplotlib import pyplot as plt
 import endaq
 import math
 from typing import Literal
+import mysql.connector
+from mysql.connector import Error
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy import URL
+
+
+
+
+
+
+
+
+
+#gathering data from the sql database
+def sql_data(experiment):
+    url_object = URL.create('mysql+mysqlconnector',
+                        username = 'root',
+                        password = '***REMOVED***',
+                        host = '***REMOVED***',
+                        database = experiment,)
+    my_eng = create_engine(url_object)
+
+    pressure = pd.read_sql_table('pressure', my_eng)
+    pressure = pressure.set_index('index')
+    laser1 = pd.read_sql_table('laser1', my_eng)
+    laser1 = laser1.set_index('Device Time')
+    laser2 = pd.read_sql_table('laser2', my_eng)
+    laser2 = laser2.set_index('Device Time')
+    return pressure, laser1, laser2
+
+
+
+
+
+
+
 
 
 #function to read TDMS files

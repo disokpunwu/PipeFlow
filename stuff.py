@@ -404,6 +404,90 @@
 #     laser3 = laser3.set_index('Device Time')
 #     return laser3
 
+# from Functions import *
+# import mysql.connector
+# from mysql.connector import Error
+# from sqlalchemy import create_engine
+# from sqlalchemy import URL
+# import pandasql as psd
+
+# # host_name = '***REMOVED***'
+# # db_name = '10p_experiment1'
+# # u_name = 'root'
+# # u_pass = '***REMOVED***'
+# # port_num = '3306'
+# url_object = URL.create('mysql+mysqlconnector',
+#                         username = 'root',
+#                         password = '***REMOVED***',
+#                         host = '***REMOVED***',
+#                         database = '10p_experiment1',)
+
+# path = r'C:\Users\PipeFlow\Desktop\Experiments\Old\Protrussion\10p\exp3\roughnessR_r=10P-exp3.tdms'
+# ldv1 = r'C:\Users\PipeFlow\Desktop\Experiments\Old\Protrussion\10p\exp3\roughnessR_r=10P-exp3-1D.SPEED.MSEBP.txt'
+# ldv2 = r'C:\Users\PipeFlow\Desktop\Experiments\Old\Protrussion\10p\exp3\roughnessR_r=10P-exp3-2D.SPEED.MSEBP.txt'
+
+# pressure = tdms_df(path)
+# laser1 = laser_df(ldv1)
+# laser2 = laser_df(ldv2)
+
+# # my_eng = create_engine('mysql+mysqlconnector://'+u_name+':'+u_pass+'@'+host_name+':'+'3306'+'/'+db_name)
+# my_eng = create_engine(url_object)
+# pressure.to_sql(name='Pressure', con=my_eng, if_exists = 'replace', index=False)
+# laser1.to_sql(name='Laser1', con=my_eng, if_exists = 'replace', index=False)
+# laser2.to_sql(name='Laser2', con=my_eng, if_exists = 'replace', index=False)
 
 
 
+# from Functions import *
+# import mysql.connector
+# from mysql.connector import Error
+# import sqlalchemy
+# from sqlalchemy import create_engine
+# from sqlalchemy import URL
+
+
+# experiment = '10p_experiment1'
+# url_object = URL.create('mysql+mysqlconnector',
+#                         username = 'root',
+#                         password = '***REMOVED***',
+#                         host = '***REMOVED***',
+#                         database = experiment,)
+# my_eng = create_engine(url_object)
+
+# pressure = pd.read_sql_table('pressure', my_eng)
+# pressure = pressure.set_index('index')
+# laser1 = pd.read_sql_table('laser1', my_eng)
+# laser1 = laser1.set_index('Device Time')
+# laser2 = pd.read_sql_table('laser2', my_eng)
+# laser2 = laser2.set_index('Device Time')
+# print(pressure)
+# print(laser1)
+# print(laser2)
+
+# def sql_data(experiment):
+#     url_object = URL.create('mysql+mysqlconnector',
+#                         username = 'root',
+#                         password = '***REMOVED***',
+#                         host = '***REMOVED***',
+#                         database = experiment,)
+#     my_eng = create_engine(url_object)
+
+#     pressure = pd.read_sql_table('pressure', my_eng)
+#     pressure = pressure.set_index('index')
+#     laser1 = pd.read_sql_table('laser1', my_eng)
+#     laser1 = laser1.set_index('Device Time')
+#     laser2 = pd.read_sql_table('laser2', my_eng)
+#     laser2 = laser2.set_index('Device Time')
+#     return pressure, laser1, laser2
+
+# experiment = '10p_experiment1'
+# data = sql_data(experiment)
+# print(data[0])
+# print(data[1])
+# print(data[2])
+
+# #moving average
+# mov = pd.DataFrame()
+# mov['rolling'] = smooth.rolling(1000).mean()
+# mov1 = pd.DataFrame()
+# mov1['rolling'] = rough.rolling(1000).mean()
