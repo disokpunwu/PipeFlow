@@ -2,7 +2,9 @@
 from Functions import *
 
 #fetching file data
-experiment = '10p_experiment1'
+experiment = ''
+
+
 data = sql_data(experiment)
 pressure = data[0]
 laser1 = data[1]
@@ -25,11 +27,19 @@ x2speed = pressure[['Flow Rate Time', 'Flow Rate']]
 x2speed = x2speed.set_index('Flow Rate Time')
 x2speed = (x2speed['Flow Rate']/60000)/(math.pi*(.0055*.0055))*2
 
-#moving average for laser data
+#laser1 data graphs
+ldv1 = laser_snr_filter(laser1, 2.0)
+ldv1 = laser_df_for_graph(ldv1)
+ldv1 = laser_interpolate(ldv1)
 mov = pd.DataFrame()
-mov['rolling'] = laser1.rolling(10).mean()
+mov['rolling'] = ldv1.rolling(10).mean()
+
+#laser2 data graphs
+ldv2 = laser_snr_filter(laser2, 2.0)
+ldv2 = laser_df_for_graph(ldv2)
+ldv2 = laser_interpolate(ldv2)
 mov1 = pd.DataFrame()
-mov1['rolling'] = laser2.rolling(10).mean()
+mov1['rolling'] = ldv2.rolling(10).mean()
 
 #standard results graph
 fig, ax = plt.subplots(3,1, sharex= True)

@@ -2,11 +2,13 @@
 from Functions import *
 
 #defining the start and end time i am looking to slice
-Start = 2600
-End = 2700
+Start = 0
+End = 0
 
 #fetching file data
-experiment = '10p_experiment1'
+experiment = ''
+
+
 data = sql_data(experiment)
 pressure = data[0]
 laser1 = data[1]
@@ -20,13 +22,17 @@ pressureslice1 = pressure_slice_df(roughp, Start, End)
 ppsd = smooth_pressure_psd(pressureslice, Start, End)
 ppsd1 = rough_pressure_psd(pressureslice1, Start, End)
 
-
 #creating psd for laser data
-slicer = laser_slice_df(laser1, Start, End)
-slicer2 = laser_slice_df(laser2, Start, End)
+ldv1 = laser_snr_filter(laser1, 2.0)
+ldv1 = laser_df_for_graph(ldv1)
+ldv1 = laser_interpolate(ldv1)
+ldv2 = laser_snr_filter(laser2, 2.0)
+ldv2 = laser_df_for_graph(ldv2)
+ldv2 = laser_interpolate(ldv2)
+slicer = laser_slice_df(ldv1, Start, End)
+slicer2 = laser_slice_df(ldv2, Start, End)
 lpsd = laser_psd(slicer, Start, End)
 lpsd1 = laser_psd(slicer2, Start, End)
-
 
 #plotting the psd for pressure data
 fig, ax = plt.subplots(3,1)
@@ -47,11 +53,10 @@ ax[2].set_ylabel('Energy (%)')
 ax[2].grid(True, which = 'both')
 ax[0].set_title('Pressure Power Spectrum')
 
-
 #plotting the psd for laser data
 fig, ax = plt.subplots(3,1)
-ax[0].plot(laser2)
-ax[0].plot(laser1)
+ax[0].plot(ldv2)
+ax[0].plot(ldv1)
 ax[0].set_ylim(-.5,2.5)
 ax[0].legend(["After", "Before"], loc='upper right')
 ax[0].set_ylabel('Speed (m/sec)')
@@ -67,7 +72,6 @@ ax[2].legend(["After", "Before"], loc='upper right')
 ax[2].set_ylabel('Energy (%)')
 ax[2].grid(True, which = 'both')
 ax[0].set_title('Laser Power Spectrum')
-
 
 plt.show()
 

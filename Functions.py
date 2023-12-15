@@ -33,10 +33,25 @@ def sql_data(experiment):
     pressure = pd.read_sql_table('pressure', my_eng)
     pressure = pressure.set_index('index')
     laser1 = pd.read_sql_table('laser1', my_eng)
-    laser1 = laser1.set_index('Device Time')
+    laser1 = laser1.set_index('index')
     laser2 = pd.read_sql_table('laser2', my_eng)
-    laser2 = laser2.set_index('Device Time')
+    laser2 = laser2.set_index('index')
     return pressure, laser1, laser2
+
+
+#gathering data from the sql database
+def sql_data1(experiment):
+    url_object = URL.create('mysql+mysqlconnector',
+                        username = 'root',
+                        password = '***REMOVED***',
+                        host = '***REMOVED***',
+                        database = experiment,)
+    my_eng = create_engine(url_object)
+
+    pressure = pd.read_sql_table('pressure', my_eng)
+    pressure = pressure.set_index('index')
+    return pressure
+
 
 
 
@@ -53,10 +68,12 @@ def tdms_df(path):
     match len(tdms_data.columns):
         case 5:
             tdms_data.columns = ['Flow Rate', 'Flow Rate Time', 'Validyne 6-32', 'Validyne8-24', 'Pressure Time']
+        case 6:
+            tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32']
         case 7:
             tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32', 'Validyne8-24']
         case _:
-            raise RuntimeError("Unsupported number of columns read (expected 5 or 7)")
+            raise RuntimeError("Unsupported number of columns read (expected 5 6, or 7)")
     return tdms_data
 
 #format all pressure data for graphing
@@ -174,7 +191,7 @@ def rough_pressure_std(rough):
     sdeviation = sdeviation.set_index('Pressure Time')
     return sdeviation
 
-#standard deviation for rough pressure data
+#standard deviation for reynolds number
 def reynolds_std(reynolds):
     r2 = reynolds.reset_index()
     steps = 10
@@ -199,6 +216,41 @@ def reynolds_std(reynolds):
     sdeviation['Standard Deviation'] =   (sdeviation['Standard Deviation']-  sdeviation['Standard Deviation'].mean())/  sdeviation['Standard Deviation'].std()
     sdeviation = sdeviation.set_index('Pressure Time')
     return sdeviation
+
+#percent difference
+def reynolds_pdiff(reynolds):
+    r2 = reynolds.reset_index()
+    steps = 10
+    slices = 50
+    begin = r2['Pressure Time'].min()
+    start = begin
+    end1 = r2['Pressure Time'].max()
+    end = round(end1/steps)*steps
+    itter = (end-begin)/steps
+    itter = itter.astype('int')
+    rmean = []
+    rmax = []
+    rmin = []
+    while begin < end:
+        slicer = pressure_slice_df(reynolds, begin, begin+slices)
+        reymean = slicer['Reynolds Number'].mean()
+        reymax = slicer['Reynolds Number'].max()
+        reymin = slicer['Reynolds Number'].min()
+        rmean.append(reymean)
+        rmax.append(reymax)
+        rmin.append(reymin)
+        begin = begin+steps
+    time = np.linspace(start, end, itter)
+    rmean.pop()
+    rmax.pop()
+    rmin.pop()
+    d = {'Pressure Time':time, 'Reynolds Mean':rmean, 'Reynolds Max':rmax, 'Reynolds Min':rmin}
+    pdifference = pd.DataFrame(d)
+    pdifference['Percent Difference'] =   (((pdifference['Reynolds Max']-  pdifference['Reynolds Min'].mean())/  pdifference['Reynolds Mean'])*100).round(2)
+    pdifference = pdifference.set_index('Pressure Time')
+    return pdifference
+
+
 
 def getPressureColumnName(isRough):
     return "Validyne 6-32" if isRough else "Validyne8-24"
@@ -341,7 +393,7 @@ def reynolds_number(tdms):
 #laminar delta p graph
 def re64(reynolds):
     reynolds['64/Re'] = 64/reynolds['Reynolds Number']
-    reynolds['Laminar Delta P'] = reynolds['64/Re']*1/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
+    reynolds['Laminar Delta P'] = reynolds['64/Re']*2/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
     Re64 = reynolds.drop('Reynolds Number', axis='columns')
     Re64 = Re64.drop('64/Re', axis='columns')
     return Re64
@@ -349,7 +401,7 @@ def re64(reynolds):
 #turbulant delta p graph (smooth)
 def blasius_smooth(reynolds):
     reynolds['Friction'] = .316/(reynolds['Reynolds Number']**.25)
-    reynolds['Blasius'] = reynolds['Friction']*1/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
+    reynolds['Blasius'] = reynolds['Friction']*2/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
     blasius = reynolds['Blasius']
     return blasius
 

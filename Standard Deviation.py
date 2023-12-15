@@ -1,7 +1,9 @@
 from Functions import *
 
 #fetching file data
-experiment = '10p_experiment1'
+experiment = ''
+
+
 data = sql_data(experiment)
 pressure = data[0]
 laser1 = data[1]
@@ -20,8 +22,14 @@ rtran1 = pstd1['Standard Deviation'] > pstd1['Standard Deviation'].mean()
 rtran = pstd1.where(rtran1)
 
 #creating std for laser data
-lstd = laser_std(laser1)
-lstd1 = laser_std(laser2)
+ldv1 = laser_snr_filter(laser1, 2.0)
+ldv1 = laser_df_for_graph(ldv1)
+ldv1 = laser_interpolate(ldv1)
+lstd = laser_std(ldv1)
+ldv2 = laser_snr_filter(laser2, 2.0)
+ldv2 = laser_df_for_graph(ldv2)
+ldv2 = laser_interpolate(ldv2)
+lstd1 = laser_std(ldv2)
 
 #transitional stage for laser data
 l1tran1 = lstd['Standard Deviation'] > lstd['Standard Deviation'].mean()
@@ -50,8 +58,8 @@ ax[0].set_title('Pressure Standard Deviation')
 
 #plotting std for laser data
 fig, ax = plt.subplots(3,1, sharex= True)
-ax[0].plot(laser2)
-ax[0].plot(laser1)
+ax[0].plot(ldv2)
+ax[0].plot(ldv1)
 ax[0].set_ylim(-.5,2.5)
 ax[0].legend(["Rough", "Smooth"], loc='upper right')
 ax[0].set_ylabel('Speed (m/sec)')

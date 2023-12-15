@@ -2,13 +2,15 @@
 from Functions import *
 
 #fetching file data
-experiment = '10p_experiment1'
-data = sql_data(experiment)
-pressure = data[0]
+experiment = ''
+
+
+data = sql_data1(experiment)
+pressure = data
 
 #time slice
-Start = 2600
-End = 2700
+Start = 50
+End = 150
 
 #pressure readings
 smooth = pressure_df_smooth(pressure)
@@ -25,6 +27,7 @@ reynolds = reynolds_number(pressure)
 reynolds = reynolds.reset_index()
 reynolds = reynolds.rename(columns={'Flow Rate Time':'Pressure Time'})
 reynolds = reynolds.set_index('Pressure Time')
+#reynolds = reynolds.rolling(10).mean()
 
 #reynolds slice
 reyslice = pressure_slice_df(reynolds, Start, End)
@@ -47,10 +50,21 @@ ppsd1 = rough_pressure_psd(rslice, Start, End)
 reystd = reynolds_std(reynolds)
 reysstd = reynolds_std(reyslice)
 
+#percent difference for reynolds number
+reypdiff = reynolds_pdiff(reynolds)
+reypdiff = reypdiff.reset_index()
+reypdiff = reypdiff[['Pressure Time', 'Percent Difference']]
+reypdiff = reypdiff.set_index('Pressure Time')
+
 #pressure drop measurements
-pdrop = pressure_drop(79, 98, 20)
+pdrop = pressure_drop(79, 94, 125.3)
 print(pdrop)
 print(reyslice['Reynolds Number'].max()-reyslice['Reynolds Number'].min())
+
+#percent difference in fluctuation
+#reymean = (((reyslice['Reynolds Number'].max()-reyslice['Reynolds Number'].min())/reyslice['Reynolds Number'].mean())*100).round(2)
+reymean = reypdiff['Percent Difference'].mean()
+print('The percent difference in fluctuation is ', reymean, 'percent')
 
 
 #Reynolds Slice, Slice, and psd
@@ -72,15 +86,15 @@ ax[2].legend(['Smooth PSD', 'Rough PSD'], loc='upper right')
 ax[2].set_ylabel('Percent of Energy')
 ax[2].grid(True, which = 'both')
 
-#Reynolds number, Reynolds std, preasure
+#Reynolds number, Reynolds pdiff, preasure
 fig, ax = plt.subplots(3,1, sharex= True)
 ax[0].plot(reynolds['Reynolds Number'])
 ax[0].legend(['Reynolds'], loc='upper right')
 ax[0].set_ylabel('Reynolds')
 ax[0].grid(True, which = 'both')
-ax[1].plot(reystd)
+ax[1].plot(reypdiff)
 ax[1].legend(["Reynolds"], loc='upper right')
-ax[1].set_ylabel('Standard Deviation')
+ax[1].set_ylabel('Percent Difference')
 ax[1].grid(True, which = 'both')
 ax[2].plot(smooth)
 ax[2].plot(rough)
