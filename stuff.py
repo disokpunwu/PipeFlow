@@ -491,3 +491,29 @@
 # mov['rolling'] = smooth.rolling(1000).mean()
 # mov1 = pd.DataFrame()
 # mov1['rolling'] = rough.rolling(1000).mean()
+
+
+# from Functions import *
+
+# experiment = '10p_ReScan38'
+# data = sql_data1(experiment)
+# flowrate = pd.DataFrame()
+# flow = np.linspace(0,700,num=701)
+# flowrate['Signal'] = flow                                       #             domain values 0-1500
+# flowrate['Flow Rate'] = flowrate['Signal']*.006                 #             calculated flowrate from signal frequency          
+# flowrate['Period'] = 1/flowrate['Signal']                       #             1/signal frequency
+# flowrate['Frequency'] = 100000000                               #             counter timebase frequency
+# flowrate['Reynolds Number'] = (1004*(11*10**(-3))*flowrate['Flow Rate']/(60*1000)*1/((11*10**(-3)/2)**2*math.pi))/(0.9096*10**(-3))
+# flowrate['Error'] = ((flowrate['Signal']/((flowrate['Period']*flowrate['Frequency'])-flowrate['Signal']))*100)
+
+# error = flowrate[['Reynolds Number','Error']]
+# error = error.set_index('Reynolds Number')
+# plt.plot(error)
+# plt.xlabel('Reynolds Number')
+# plt.ylabel('Percent')
+# plt.title('Percent Error Chart')
+# plt.grid(True)
+# plt.show()
+
+
+
