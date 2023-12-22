@@ -2,7 +2,7 @@
 from Functions import *
 
 #fetching file data
-experiment = ''
+experiment = '4v_rescan3'
 
 
 data = sql_data(experiment)

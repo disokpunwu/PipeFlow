@@ -2,7 +2,10 @@
 from Functions import *
 
 #fetching file data
-experiment = ''
+experiment = '10p_ReScan31'
+reservoir = 79
+before = 102.3
+after = 120
 
 
 data = sql_data1(experiment)
@@ -57,8 +60,8 @@ reypdiff = reypdiff[['Pressure Time', 'Percent Difference']]
 reypdiff = reypdiff.set_index('Pressure Time')
 
 #pressure drop measurements
-pdrop = pressure_drop(79, 94, 125.3)
-print(pdrop)
+pdrop = pressure_drop(reservoir, before, after)
+print('The pressure fluctuation is ', pdrop)
 print(reyslice['Reynolds Number'].max()-reyslice['Reynolds Number'].min())
 
 #percent difference in fluctuation

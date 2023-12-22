@@ -12,6 +12,7 @@ from mysql.connector import Error
 import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy import URL
+import seaborn as sns
 
 
 
@@ -71,7 +72,7 @@ def tdms_df(path):
         case 6:
             tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32']
         case 7:
-            tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32', 'Validyne8-24']
+            tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Pressure Time', 'Validyne 6-32', 'Validyne8-24', 'Flow Rate', 'Flow Rate Time']
         case _:
             raise RuntimeError("Unsupported number of columns read (expected 5 6, or 7)")
     return tdms_data
@@ -241,9 +242,21 @@ def reynolds_pdiff(reynolds):
         rmin.append(reymin)
         begin = begin+steps
     time = np.linspace(start, end, itter)
-    rmean.pop()
-    rmax.pop()
-    rmin.pop()
+    if np.count_nonzero(rmean) != np.count_nonzero(time):
+        rmean.pop()
+    else:
+        pass
+    if np.count_nonzero(rmax) != np.count_nonzero(time):
+        rmax.pop()
+    else:
+        pass    
+    if np.count_nonzero(rmin) != np.count_nonzero(time):
+        rmin.pop()
+    else:
+        pass 
+    # rmean.pop()
+    # rmax.pop()
+    # rmin.pop()
     d = {'Pressure Time':time, 'Reynolds Mean':rmean, 'Reynolds Max':rmax, 'Reynolds Min':rmin}
     pdifference = pd.DataFrame(d)
     pdifference['Percent Difference'] =   (((pdifference['Reynolds Max']-  pdifference['Reynolds Min'].mean())/  pdifference['Reynolds Mean'])*100).round(2)
@@ -271,8 +284,12 @@ def pressure_drop(reservoir, entry, exit):
 
     return bef, before, pip, pipe, aft, after
 
-
-
+#function to determine total pressure drop
+def tot_pressure_drop(reservoir):
+    res = reservoir-79
+    ent = 51.2-res
+    ext = (159.8-ent)/1.02
+    return ext
 
 
 
