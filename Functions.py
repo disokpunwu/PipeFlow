@@ -68,11 +68,11 @@ def tdms_df(path):
     tdms_data = tdms_file.as_dataframe()
     match len(tdms_data.columns):
         case 5:
-            tdms_data.columns = ['Flow Rate', 'Flow Rate Time', 'Validyne 6-32', 'Validyne8-24', 'Pressure Time']
+            tdms_data.rename(columns= {"/'Flow Rate'/'Flow Rate'" : 'Flow Rate', "/'Flow Rate'/'Time'": 'Flow Rate Time', "/'Pressure'/'Validyne 6-32'": 'Validyne 6-32', "/'Pressure'/'Validyne 8-24'": 'Validyne8-24', "/'Pressure'/'Time'":'Pressure Time'}, inplace = True)
         case 6:
-            tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32']
+            tdms_data.rename(columns= {"/'Motor'/'Motor Frequency'" : 'Motor Frequency', "/'Motor'/'Time'":'Motor Time', "/'Flow Rate'/'Flow Rate'":'Flow Rate', "/'Flow Rate'/'Time'":'Flow Rate Time', "/'Pressure'/'Time'":'Pressure Time', "/'Pressure'/'Validyne 6-32'":'Validyne 6-32'}, inplace=True)
         case 7:
-            tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32', 'Validyne8-24']
+            tdms_data.rename(columns= {"/'Motor'/'Motor Frequency'" : 'Motor Frequency', "/'Motor'/'Time'":'Motor Time', "/'Flow Rate'/'Flow Rate'":'Flow Rate', "/'Flow Rate'/'Time'":'Flow Rate Time', "/'Pressure'/'Time'":'Pressure Time', "/'Pressure'/'Validyne 6-32'":'Validyne 6-32', "/'Pressure'/'Validyne 8-24'":'Validyne8-24'},inplace=True)
         case _:
             raise RuntimeError("Unsupported number of columns read (expected 5 6, or 7)")
     return tdms_data
