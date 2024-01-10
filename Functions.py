@@ -40,7 +40,7 @@ def sql_data(experiment):
     return pressure, laser1, laser2
 
 
-#gathering data from the sql database
+#gathering data from the sql database without laser
 def sql_data1(experiment):
     url_object = URL.create('mysql+mysqlconnector',
                         username = 'root',
