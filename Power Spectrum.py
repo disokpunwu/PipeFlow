@@ -2,11 +2,11 @@
 from Functions import *
 
 #defining the start and end time i am looking to slice
-Start = 0
-End = 0
+Start = 7050
+End = 7150
 
 #fetching file data
-experiment = ''
+experiment = '4v_rescan7'
 
 
 data = sql_data(experiment)
@@ -39,12 +39,12 @@ fig, ax = plt.subplots(3,1)
 ax[0].plot(roughp)
 ax[0].plot(smoothp)
 ax[0].legend(["After", "Before"], loc='upper right')
-ax[0].set_ylabel('Pressure (mBarr)')
+ax[0].set_ylabel('Pressure (mBar/m)')
 ax[0].grid(True, which = 'both')
 ax[1].plot(pressureslice1)
 ax[1].plot(pressureslice)
 ax[1].legend(["After", "Before"], loc='upper right')
-ax[1].set_ylabel('Pressure (mBarr)')
+ax[1].set_ylabel('Pressure (mBar/m)')
 ax[1].grid(True, which = 'both')
 ax[2].plot(ppsd1)
 ax[2].plot(ppsd)

@@ -2,7 +2,7 @@
 from Functions import *
 
 #fetching file data
-experiment = '10p_ReScan31'
+experiment = '10p_ReScan16'
 reservoir = 79
 before = 102.3
 after = 120
@@ -12,8 +12,8 @@ data = sql_data1(experiment)
 pressure = data
 
 #time slice
-Start = 50
-End = 150
+Start = 100
+End = 2500
 
 #pressure readings
 smooth = pressure_df_smooth(pressure)
@@ -38,12 +38,12 @@ reyslice = pressure_slice_df(reynolds, Start, End)
 #pressure indicators
 reys64 = re64(reynolds)
 blas = blasius_smooth(reynolds)
-haal = blasius_rough(reynolds)
+haal = haaland_rough(reynolds)
 
 #indicator slices
 reys64slice = re64(reyslice)
 blasslice = blasius_smooth(reyslice)
-haalslice = blasius_rough(reyslice)
+haalslice = haaland_rough(reyslice)
 
 #psd for pressure data
 ppsd = smooth_pressure_psd(sslice, Start, End)

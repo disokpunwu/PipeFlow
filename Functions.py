@@ -72,7 +72,7 @@ def tdms_df(path):
         case 6:
             tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32']
         case 7:
-            tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Pressure Time', 'Validyne 6-32', 'Validyne8-24', 'Flow Rate', 'Flow Rate Time']
+            tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32', 'Validyne8-24']
         case _:
             raise RuntimeError("Unsupported number of columns read (expected 5 6, or 7)")
     return tdms_data
@@ -99,6 +99,7 @@ def pressure_df_2(tdms_df, region: Literal["rough", "smooth"]):
 def pressure_df_smooth(tdms_df):
     smooth1 = tdms_df
     smooth1 = tdms_df[['Pressure Time', 'Validyne8-24']]
+    smooth1['Validyne8-24'] = smooth1['Validyne8-24']/2
     smooth = smooth1.set_index('Pressure Time')
     return smooth
 
@@ -292,6 +293,28 @@ def tot_pressure_drop(reservoir):
     return ext
 
 
+#function to calculate 2x mean speed
+def x2speed_df(pressure):
+    x2speed = pressure[['Flow Rate Time', 'Flow Rate']]
+    x2speed = x2speed.set_index('Flow Rate Time')
+    x2speed = (x2speed['Flow Rate']/60000)/(math.pi*(.0055*.0055))*2
+    x2speed = x2speed.rolling(10).mean()
+    return x2speed
+
+#function to slice 2x speed data
+def x2speed_slice_df(formatted_data, Start, End):
+    sliceddata = formatted_data
+    sliceddata = sliceddata.reset_index()
+    a = sliceddata['Flow Rate Time'] > (Start-.1)
+    b = sliceddata.where(a)
+    c = b.dropna()
+    d = c['Flow Rate Time'] < (End+.1)
+    e = c.where(d)
+    sliceddata = e.dropna()
+    sliceddata = sliceddata.set_index('Flow Rate Time')
+    return sliceddata 
+
+
 
 
 
@@ -410,7 +433,16 @@ def reynolds_number(tdms):
 #laminar delta p graph
 def re64(reynolds):
     reynolds['64/Re'] = 64/reynolds['Reynolds Number']
-    reynolds['Laminar Delta P'] = reynolds['64/Re']*2/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
+    reynolds['Laminar Delta P'] = reynolds['64/Re']*1/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
+    Re64 = reynolds.drop('Reynolds Number', axis='columns')
+    Re64 = Re64.drop('64/Re', axis='columns')
+    return Re64
+
+#laminar delta p graph
+def re65(reynolds):
+    reynolds['64/Re'] = 64/reynolds['Reynolds Number']
+    #reynolds['Laminar Delta P'] = (reynolds['64/Re'])*(1004/2)*(((((reynolds['Reynolds Number'])*(0.9096*10**(-3)))/1004)**2)/(11*1e-3))*100
+    reynolds['Laminar Delta P'] = (reynolds['64/Re'])*(1004/2)*((reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2)/(11*10**(-3))/100
     Re64 = reynolds.drop('Reynolds Number', axis='columns')
     Re64 = Re64.drop('64/Re', axis='columns')
     return Re64
@@ -418,7 +450,8 @@ def re64(reynolds):
 #turbulant delta p graph (smooth)
 def blasius_smooth(reynolds):
     reynolds['Friction'] = .316/(reynolds['Reynolds Number']**.25)
-    reynolds['Blasius'] = reynolds['Friction']*2/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
+    reynolds['Blasius'] = (reynolds['Friction'])*(1004/2)*((reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2)/(11*10**(-3))/100
+    #reynolds['Blasius'] = reynolds['Friction']/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
     blasius = reynolds['Blasius']
     return blasius
 
@@ -428,3 +461,10 @@ def blasius_rough(reynolds):
      reynolds['Blasius'] = reynolds['Friction']*1/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
      blasius = reynolds['Blasius']
      return blasius
+
+#turbulant delta p graph (rough)
+def haaland_rough(reynolds):
+     reynolds['Friction'] = (1/(-1.8*np.log10(((2.75/11)/3.7)**1.11+6.9/reynolds['Reynolds Number'])))**2
+     reynolds['Haaland'] = (reynolds['Friction'])*(1004/2)*((reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2)/(11*10**(-3))/100
+     haaland = reynolds['Haaland']
+     return haaland

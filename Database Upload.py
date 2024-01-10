@@ -3,10 +3,10 @@ from Functions import *
 
 
 #creating paths for data to be uploaded
-experiment = '4v_rescan1'
-path = r'C:\Users\PipeFlow\Desktop\Experiments\New\Valley\4v\ReScan1\ReScan1.tdms'
-ldv1 = r'C:\Users\PipeFlow\Desktop\Experiments\New\Valley\4v\ReScan1\laser1.SPEED.MSEBP.txt'
-ldv2 = r'C:\Users\PipeFlow\Desktop\Experiments\New\Valley\4v\ReScan1\laser2.SPEED.MSEBP.txt'
+experiment = '11v_experiment7'
+path = r'C:\Users\PipeFlow\Desktop\Experiments\Old\Valley\11v\20230809_PressureFluctuationsInRoughSection\PressureFluctuations.tdms'
+ldv1 = r'C:\Users\PipeFlow\Desktop\Experiments\Old\Valley\11v\20230809_PressureFluctuationsInRoughSection\PressureFluctuations_Smooth.SPEED.MSEBP.txt'
+ldv2 = r'C:\Users\PipeFlow\Desktop\Experiments\Old\Valley\11v\20230809_PressureFluctuationsInRoughSection\PressureFluctuations_Rough.SPEED.MSEBP.txt'
 
 #formatting pressure data
 pressure = tdms_df(path)

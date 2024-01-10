@@ -2,7 +2,7 @@
 from Functions import *
 
 #fetching file data
-experiment = '4v_rescan3'
+experiment = '4v_rescan7'
 
 
 data = sql_data(experiment)
@@ -20,12 +20,10 @@ sturbulant = blasius_smooth(reynolds)
 
 #rough pressure data graphs
 rough = pressure_df_rough(pressure)
-rturbulant = blasius_rough(reynolds)
+rturbulant = haaland_rough(reynolds)
 
 #ūx2 from flowrate
-x2speed = pressure[['Flow Rate Time', 'Flow Rate']]
-x2speed = x2speed.set_index('Flow Rate Time')
-x2speed = (x2speed['Flow Rate']/60000)/(math.pi*(.0055*.0055))*2
+x2speed = x2speed_df(pressure)
 
 #laser1 data graphs
 ldv1 = laser_snr_filter(laser1, 2.0)
@@ -54,7 +52,7 @@ ax[1].plot(laminard)
 ax[1].plot(sturbulant)
 ax[1].plot(rturbulant)
 ax[1].legend(["Smooth", 'Rough', '64/Re', 'Blasius Equ.', 'Haaland Equ.'], loc='upper right')
-ax[1].set_ylabel('Pressure (mBarr)')
+ax[1].set_ylabel('Pressure (mBar/m)')
 ax[1].grid(True, which = 'both')
 ax[2].plot(mov)
 ax[2].plot(mov1)
