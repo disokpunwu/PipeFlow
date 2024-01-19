@@ -2,7 +2,7 @@
 from Functions import *
 
 #fetching file data
-experiment = '4v_rescan7'
+experiment = ''
 
 
 data = sql_data(experiment)
@@ -50,7 +50,7 @@ ax[1].plot(smooth)
 ax[1].plot(rough)
 ax[1].plot(laminard)
 ax[1].plot(sturbulant)
-ax[1].plot(rturbulant)
+#ax[1].plot(rturbulant)
 ax[1].legend(["Smooth", 'Rough', '64/Re', 'Blasius Equ.', 'Haaland Equ.'], loc='upper right')
 ax[1].set_ylabel('Pressure (mBar/m)')
 ax[1].grid(True, which = 'both')

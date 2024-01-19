@@ -73,6 +73,8 @@ def tdms_df(path):
             tdms_data.rename(columns= {"/'Motor'/'Motor Frequency'" : 'Motor Frequency', "/'Motor'/'Time'":'Motor Time', "/'Flow Rate'/'Flow Rate'":'Flow Rate', "/'Flow Rate'/'Time'":'Flow Rate Time', "/'Pressure'/'Time'":'Pressure Time', "/'Pressure'/'Validyne 6-32'":'Validyne 6-32'}, inplace=True)
         case 7:
             tdms_data.rename(columns= {"/'Motor'/'Motor Frequency'" : 'Motor Frequency', "/'Motor'/'Time'":'Motor Time', "/'Flow Rate'/'Flow Rate'":'Flow Rate', "/'Flow Rate'/'Time'":'Flow Rate Time', "/'Pressure'/'Time'":'Pressure Time', "/'Pressure'/'Validyne 6-32'":'Validyne 6-32', "/'Pressure'/'Validyne 8-24'":'Validyne8-24'},inplace=True)
+        case 8:
+            tdms_data.rename(columns= {"/'Motor'/'Motor Frequency'" : 'Motor Frequency', "/'Motor'/'Time'":'Motor Time', "/'Flow Rate'/'Flow Rate'":'Flow Rate', "/'Flow Rate'/'Time'":'Flow Rate Time', "/'Pressure'/'Time'":'Pressure Time', "/'Pressure'/'Validyne 6-32'":'Validyne 6-32', "/'Pressure'/'Validyne 8-22'":'Validyne8-22', "/'Pressure'/'Validyne 8-24'":'Validyne8-24'},inplace=True)
         case _:
             raise RuntimeError("Unsupported number of columns read (expected 5 6, or 7)")
     return tdms_data
@@ -264,7 +266,16 @@ def reynolds_pdiff(reynolds):
     pdifference = pdifference.set_index('Pressure Time')
     return pdifference
 
-
+#function to slice pressure data
+def reynolds_slice(data, Start, End):
+    sliceddata = data
+    a = sliceddata['Reynolds Number'] > (Start-.1)
+    b = sliceddata.where(a)
+    c = b.dropna()
+    d = c['Reynolds Number'] < (End+.1)
+    e = c.where(d)
+    sliceddata = e.dropna()
+    return sliceddata  
 
 def getPressureColumnName(isRough):
     return "Validyne 6-32" if isRough else "Validyne8-24"
@@ -464,7 +475,7 @@ def blasius_rough(reynolds):
 
 #turbulant delta p graph (rough)
 def haaland_rough(reynolds):
-     reynolds['Friction'] = (1/(-1.8*np.log10(((2.75/11)/3.7)**1.11+6.9/reynolds['Reynolds Number'])))**2
+     reynolds['Friction'] = (1/(-1.8*np.log10(((3.667/11)/3.7)**1.11+6.9/reynolds['Reynolds Number'])))**2
      reynolds['Haaland'] = (reynolds['Friction'])*(1004/2)*((reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2)/(11*10**(-3))/100
      haaland = reynolds['Haaland']
      return haaland
