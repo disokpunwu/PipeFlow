@@ -12,7 +12,7 @@ ldv2 = r''
 pressure = tdms_df(path)
 
 #formatting smooth laser data
-#laser1 = laser_df(ldv1)
+laser1 = laser_df(ldv1)
 
 #formatting rough laser data
 laser2 = laser_df(ldv2)
