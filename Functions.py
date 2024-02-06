@@ -7,6 +7,70 @@ from matplotlib import pyplot as plt
 import endaq
 import math
 from typing import Literal
+import mysql.connector
+from mysql.connector import Error
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy import URL
+import seaborn as sns
+import os
+
+username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
+password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
+host = os.getenv("PIPEFLOW_DATABASE_HOST")
+
+#gathering data from the sql database
+def sql_data(experiment):
+    url_object = URL.create('mysql+mysqlconnector',
+                        username = username,
+                        password = password,
+                        host = host,
+                        database = experiment,)
+    my_eng = create_engine(url_object)
+
+    pressure = pd.read_sql_table('pressure', my_eng)
+    pressure = pressure.set_index('index')
+    laser1 = pd.read_sql_table('laser1', my_eng)
+    laser1 = laser1.set_index('index')
+    laser2 = pd.read_sql_table('laser2', my_eng)
+    laser2 = laser2.set_index('index')
+    return pressure, laser1, laser2
+
+
+#gathering data from the sql database without lasers
+def sql_data1(experiment):
+    url_object = URL.create('mysql+mysqlconnector',
+                        username = username,
+                        password = password,
+                        host = host,
+                        database = experiment,)
+    my_eng = create_engine(url_object)
+
+    pressure = pd.read_sql_table('pressure', my_eng)
+    pressure = pressure.set_index('index')
+    return pressure
+
+
+#gathering data from the sql database without laser1
+def sql_data2(experiment):
+    url_object = URL.create('mysql+mysqlconnector',
+                        username = username,
+                        password = password,
+                        host = host,
+                        database = experiment,)
+    my_eng = create_engine(url_object)
+
+    pressure = pd.read_sql_table('pressure', my_eng)
+    pressure = pressure.set_index('index')
+    laser2 = pd.read_sql_table('laser2', my_eng)
+    laser2 = laser2.set_index('index')
+    return pressure, laser2
+
+
+
+
+
+
 
 
 #function to read TDMS files
@@ -15,11 +79,15 @@ def tdms_df(path):
     tdms_data = tdms_file.as_dataframe()
     match len(tdms_data.columns):
         case 5:
-            tdms_data.columns = ['Flow Rate', 'Flow Rate Time', 'Validyne 6-32', 'Validyne8-24', 'Pressure Time']
+            tdms_data.rename(columns= {"/'Flow Rate'/'Flow Rate'" : 'Flow Rate', "/'Flow Rate'/'Time'": 'Flow Rate Time', "/'Pressure'/'Validyne 6-32'": 'Validyne 6-32', "/'Pressure'/'Validyne 8-24'": 'Validyne8-24', "/'Pressure'/'Time'":'Pressure Time'}, inplace = True)
+        case 6:
+            tdms_data.rename(columns= {"/'Motor'/'Motor Frequency'" : 'Motor Frequency', "/'Motor'/'Time'":'Motor Time', "/'Flow Rate'/'Flow Rate'":'Flow Rate', "/'Flow Rate'/'Time'":'Flow Rate Time', "/'Pressure'/'Time'":'Pressure Time', "/'Pressure'/'Validyne 6-32'":'Validyne 6-32'}, inplace=True)
         case 7:
-            tdms_data.columns = ['Motor Frequency', 'Motor Time', 'Flow Rate', 'Flow Rate Time', 'Pressure Time', 'Validyne 6-32', 'Validyne8-24']
+            tdms_data.rename(columns= {"/'Motor'/'Motor Frequency'" : 'Motor Frequency', "/'Motor'/'Time'":'Motor Time', "/'Flow Rate'/'Flow Rate'":'Flow Rate', "/'Flow Rate'/'Time'":'Flow Rate Time', "/'Pressure'/'Time'":'Pressure Time', "/'Pressure'/'Validyne 6-32'":'Validyne 6-32', "/'Pressure'/'Validyne 8-24'":'Validyne8-24'},inplace=True)
+        case 8:
+            tdms_data.rename(columns= {"/'Motor'/'Motor Frequency'" : 'Motor Frequency', "/'Motor'/'Time'":'Motor Time', "/'Flow Rate'/'Flow Rate'":'Flow Rate', "/'Flow Rate'/'Time'":'Flow Rate Time', "/'Pressure'/'Time'":'Pressure Time', "/'Pressure'/'Validyne 6-32'":'Validyne 6-32', "/'Pressure'/'Validyne 8-22'":'Validyne8-22', "/'Pressure'/'Validyne 8-24'":'Validyne8-24'},inplace=True)
         case _:
-            raise RuntimeError("Unsupported number of columns read (expected 5 or 7)")
+            raise RuntimeError("Unsupported number of columns read (expected 5 6, or 7)")
     return tdms_data
 
 #format all pressure data for graphing
@@ -44,6 +112,7 @@ def pressure_df_2(tdms_df, region: Literal["rough", "smooth"]):
 def pressure_df_smooth(tdms_df):
     smooth1 = tdms_df
     smooth1 = tdms_df[['Pressure Time', 'Validyne8-24']]
+    smooth1['Validyne8-24'] = smooth1['Validyne8-24']/2
     smooth = smooth1.set_index('Pressure Time')
     return smooth
 
@@ -137,7 +206,7 @@ def rough_pressure_std(rough):
     sdeviation = sdeviation.set_index('Pressure Time')
     return sdeviation
 
-#standard deviation for rough pressure data
+#standard deviation for reynolds number
 def reynolds_std(reynolds):
     r2 = reynolds.reset_index()
     steps = 10
@@ -163,6 +232,62 @@ def reynolds_std(reynolds):
     sdeviation = sdeviation.set_index('Pressure Time')
     return sdeviation
 
+#percent difference
+def reynolds_pdiff(reynolds):
+    r2 = reynolds.reset_index()
+    steps = 10
+    slices = 50
+    begin = r2['Pressure Time'].min()
+    start = begin
+    end1 = r2['Pressure Time'].max()
+    end = round(end1/steps)*steps
+    itter = (end-begin)/steps
+    itter = itter.astype('int')
+    rmean = []
+    rmax = []
+    rmin = []
+    while begin < end:
+        slicer = pressure_slice_df(reynolds, begin, begin+slices)
+        reymean = slicer['Reynolds Number'].mean()
+        reymax = slicer['Reynolds Number'].max()
+        reymin = slicer['Reynolds Number'].min()
+        rmean.append(reymean)
+        rmax.append(reymax)
+        rmin.append(reymin)
+        begin = begin+steps
+    time = np.linspace(start, end, itter)
+    if np.count_nonzero(rmean) != np.count_nonzero(time):
+        rmean.pop()
+    else:
+        pass
+    if np.count_nonzero(rmax) != np.count_nonzero(time):
+        rmax.pop()
+    else:
+        pass    
+    if np.count_nonzero(rmin) != np.count_nonzero(time):
+        rmin.pop()
+    else:
+        pass 
+    # rmean.pop()
+    # rmax.pop()
+    # rmin.pop()
+    d = {'Pressure Time':time, 'Reynolds Mean':rmean, 'Reynolds Max':rmax, 'Reynolds Min':rmin}
+    pdifference = pd.DataFrame(d)
+    pdifference['Percent Difference'] =   (((pdifference['Reynolds Max']-  pdifference['Reynolds Min'].mean())/  pdifference['Reynolds Mean'])*100).round(2)
+    pdifference = pdifference.set_index('Pressure Time')
+    return pdifference
+
+#function to slice pressure data
+def reynolds_slice(data, Start, End):
+    sliceddata = data
+    a = sliceddata['Reynolds Number'] > (Start-.1)
+    b = sliceddata.where(a)
+    c = b.dropna()
+    d = c['Reynolds Number'] < (End+.1)
+    e = c.where(d)
+    sliceddata = e.dropna()
+    return sliceddata  
+
 def getPressureColumnName(isRough):
     return "Validyne 6-32" if isRough else "Validyne8-24"
 
@@ -182,8 +307,34 @@ def pressure_drop(reservoir, entry, exit):
 
     return bef, before, pip, pipe, aft, after
 
+#function to determine total pressure drop
+def tot_pressure_drop(reservoir):
+    res = reservoir-79
+    ent = 51.2-res
+    ext = (159.8-ent)/1.02
+    return ext
 
 
+#function to calculate 2x mean speed
+def x2speed_df(pressure):
+    x2speed = pressure[['Flow Rate Time', 'Flow Rate']]
+    x2speed = x2speed.set_index('Flow Rate Time')
+    x2speed = (x2speed['Flow Rate']/60000)/(math.pi*(.0055*.0055))*2
+    x2speed = x2speed.rolling(10).mean()
+    return x2speed
+
+#function to slice 2x speed data
+def x2speed_slice_df(formatted_data, Start, End):
+    sliceddata = formatted_data
+    sliceddata = sliceddata.reset_index()
+    a = sliceddata['Flow Rate Time'] > (Start-.1)
+    b = sliceddata.where(a)
+    c = b.dropna()
+    d = c['Flow Rate Time'] < (End+.1)
+    e = c.where(d)
+    sliceddata = e.dropna()
+    sliceddata = sliceddata.set_index('Flow Rate Time')
+    return sliceddata 
 
 
 
@@ -296,7 +447,15 @@ def reynolds_number(tdms):
     flowrate['Flow Rate Time'] = flowrate['Flow Rate Time'].round(2)
     flowrate['Flow Rate Time'] = flowrate['Flow Rate Time'].drop_duplicates(keep='first')
     flowrate = flowrate.dropna()
-    flowrate['Reynolds Number'] = (1004*(11*10**(-3))*flowrate['Flow Rate']/(60*1000)*1/((11*10**(-3)/2)**2*math.pi))/(0.9096*10**(-3))
+    diameter = 11 * (10**(-3))
+    crossSectionalArea = (math.pi * diameter**2)/4
+
+    density = 1004 # kg/m^3
+    dynamicViscosity = 0.9096 * 10**-3
+    # flowrate['Flow Rate'] is l/min = 10cm^3 / minute = 0.1m^3 / min
+    metresCubedPerSecond = flowrate['Flow Rate'] * (0.1**3) / 60
+    velocity = metresCubedPerSecond / crossSectionalArea
+    flowrate['Reynolds Number'] = (density*diameter*velocity)/(dynamicViscosity)
     reynolds = flowrate[['Flow Rate Time', 'Reynolds Number']]
     reynolds = reynolds.set_index('Flow Rate Time')
     return reynolds
@@ -309,10 +468,20 @@ def re64(reynolds):
     Re64 = Re64.drop('64/Re', axis='columns')
     return Re64
 
+#laminar delta p graph
+def re65(reynolds):
+    reynolds['64/Re'] = 64/reynolds['Reynolds Number']
+    #reynolds['Laminar Delta P'] = (reynolds['64/Re'])*(1004/2)*(((((reynolds['Reynolds Number'])*(0.9096*10**(-3)))/1004)**2)/(11*1e-3))*100
+    reynolds['Laminar Delta P'] = (reynolds['64/Re'])*(1004/2)*((reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2)/(11*10**(-3))/100
+    Re64 = reynolds.drop('Reynolds Number', axis='columns')
+    Re64 = Re64.drop('64/Re', axis='columns')
+    return Re64
+
 #turbulant delta p graph (smooth)
 def blasius_smooth(reynolds):
     reynolds['Friction'] = .316/(reynolds['Reynolds Number']**.25)
-    reynolds['Blasius'] = reynolds['Friction']*1/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
+    reynolds['Blasius'] = (reynolds['Friction'])*(1004/2)*((reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2)/(11*10**(-3))/100
+    #reynolds['Blasius'] = reynolds['Friction']/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
     blasius = reynolds['Blasius']
     return blasius
 
@@ -322,3 +491,10 @@ def blasius_rough(reynolds):
      reynolds['Blasius'] = reynolds['Friction']*1/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
      blasius = reynolds['Blasius']
      return blasius
+
+#turbulant delta p graph (rough)
+def haaland_rough(reynolds):
+     reynolds['Friction'] = (1/(-1.8*np.log10(((3.667/11)/3.7)**1.11+6.9/reynolds['Reynolds Number'])))**2
+     reynolds['Haaland'] = (reynolds['Friction'])*(1004/2)*((reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2)/(11*10**(-3))/100
+     haaland = reynolds['Haaland']
+     return haaland
