@@ -1,6 +1,6 @@
 #importing functions
 from Functions import *
-
+import os
 
 #creating paths for data to be uploaded
 experiment = ''
