@@ -5,10 +5,10 @@ from Functions import *
 experiment = ''
 
 
-data = sql_data(experiment)
-pressure = data[0]
+data = sql_data1(experiment)
+pressure = data
 laser1 = data[1]
-laser2 = data[2]
+laser2 = data[1]
 
 #reynolds number
 reynolds = reynolds_number(pressure)
@@ -40,24 +40,24 @@ mov1 = pd.DataFrame()
 mov1['rolling'] = ldv2.rolling(10).mean()
 
 #standard results graph
-fig, ax = plt.subplots(3,1, sharex= True)
+fig, ax = plt.subplots(2,1, sharex= True)
 ax[0].plot(reynolds['Reynolds Number'])
 ax[0].legend(["Reynolds"], loc='upper right')
 ax[0].set_ylabel('Reynolds Number')
 ax[0].grid(True, which = 'both')
 ax[0].set_title('Results')
-ax[1].plot(smooth)
 ax[1].plot(rough)
+ax[1].plot(smooth)
 ax[1].plot(laminard)
 ax[1].plot(sturbulant)
-#ax[1].plot(rturbulant)
-ax[1].legend(["Smooth", 'Rough', '64/Re', 'Blasius Equ.', 'Haaland Equ.'], loc='upper right')
+ax[1].plot(rturbulant)
+ax[1].legend(["Rough", 'Smooth', '64/Re', 'Blasius Equ.', 'Haaland Equ.'], loc='upper right')
 ax[1].set_ylabel('Pressure (mBar/m)')
 ax[1].grid(True, which = 'both')
 ax[2].plot(mov)
 ax[2].plot(mov1)
 ax[2].plot(x2speed)
-ax[2].legend(["Smooth", 'Rough', 'ūx2 from flowrate'], loc='upper right')
+ax[2].legend(['Rough', 'ūx2 from flowrate'], loc='upper right')
 ax[2].set_ylabel('Speed (m/s)')
 ax[2].grid(True, which = 'both')
 plt.show()

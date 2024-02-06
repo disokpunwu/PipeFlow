@@ -6,17 +6,17 @@ from Functions import *
 experiment = ''
 Step = 1
 
-StartTimes =      [100.0, 300.0, 500.0, 700.0, 900.00, 1100.0, 1300.0, 1500.0, 1700.0, 1900.0, 2100.0, 2300.0, 2500.0, 2700.0, 2900.0]
-EndTimes =        [200.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0, 1800.0, 2000.0, 2200.0, 2400.0, 2600.0, 2800.0, 3000.0]
+StartTimes =      [2000.0, 300.0, 500.0, 700.0, 900.00, 1100.0, 1300.0, 1500.0, 1700.0, 1900.0, 2100.0, 2300.0, 2500.0, 2700.0, 2900.0]
+EndTimes =        [2100.0, 400.0, 600.0, 800.0, 1000.0, 1200.0, 1400.0, 1600.0, 1800.0, 2000.0, 2200.0, 2400.0, 2600.0, 2800.0, 3000.0]
 ReservoirHeight = [108.0, 109.6, 111.7, 112.0, 113.30, 113.30, 182.00, 185.70, 186.50, 188.40, 191.80, 194.70, 197.60, 199.60, 204.50]
 EntryPressure   = [59.40, 57.90, 57.00, 57.50, 54.900, 54.900, -16.30, -21.00, -23.00, -25.00, -28.00, -28.00, -28.00, -28.00, -28.00]
 ExitPressure    = [61.00, 59.60, 59.00, 59.10, 57.100, 57.100, -14.50, -20.00, -21.50, -22.80, -26.00, -26.00, -26.00, -26.00, -26.00]
 
 #seperating data
-data = sql_data(experiment)
+data = sql_data2(experiment)
 pressure = data[0]
 laser1 = data[1]
-laser2 = data[2]
+laser2 = data[1]
 
 
 #creating the dataframes
@@ -25,6 +25,16 @@ spressure = pressure_df_smooth(pressure)
 
 #rough pressure
 rpressure = pressure_df_rough(pressure)
+
+
+
+#format pressure data in the rough section
+def pressure_df_rough1(tdms_df):
+    rough1 = tdms_df
+    rough1 = tdms_df[['Pressure Time', 'Validyne8-22']]
+    rough = rough1.set_index('Pressure Time')
+    return rough
+rpressure2 = pressure_df_rough1(pressure)
 
 #laser1
 ldv1 = laser_snr_filter(laser1, 2.0)
@@ -68,25 +78,31 @@ before = EntryPressure[Step-1]
 after = ExitPressure[Step-1]
 Start = ((First+Last)/2)-50
 End = Start+100
+Start = First
+End = Last
 
 #pressure slices
 sslice = pressure_slice_df(spressure, Start, End)
 rslice = pressure_slice_df(rpressure, Start, End)
+rslice2 = pressure_slice_df(rpressure2, Start, End)
 
 #laser slices
 slslice = laser_slice_df(slaser,Start,End)
 rlslice = laser_slice_df(rlaser,Start,End)
+lasermax = rlslice.max()
+lasermin = rlslice.min()
+print('The velocity is fluctuating between ',lasermin, 'and ', lasermax)
 
 #reynolds slice
 reyslice = pressure_slice_df(reynolds, Start, End)
 reysm = reyslice['Reynolds Number'].mean()
 print('The Reynolds Number is ', reysm)
 
-# #percent difference for reynolds slice
-# reypdiff = reynolds_pdiff(reyslice)
-# reypdiff = reypdiff.reset_index()
-# reypdiff = reypdiff[['Pressure Time', 'Percent Difference']]
-# reypdiff = reypdiff.set_index('Pressure Time')
+#percent difference for reynolds slice
+reypdiff = reynolds_pdiff(reyslice)
+reypdiff = reypdiff.reset_index()
+reypdiff = reypdiff[['Pressure Time', 'Percent Difference']]
+reypdiff = reypdiff.set_index('Pressure Time')
 
 #indicator slices
 reys64slice = re64(reyslice)
@@ -122,16 +138,16 @@ ax[0].grid(True, which = 'both')
 ax[0].set_title('Results')
 ax[1].plot(sslice)
 ax[1].plot(rslice)
+ax[1].plot(rslice2)
 ax[1].plot(reys64slice['Laminar Delta P'])
 ax[1].plot(blasslice)
-ax[1].plot(haalslice)
-ax[1].legend(["Smooth", 'Rough', '64/Re', 'Blasius Equ.', 'Haaland Equ.'], loc='upper right')
+ax[1].legend(["Smooth", 'Rough1', 'Rough2', '64/Re', 'Blasius Equ.', 'Haaland Equ.'], loc='upper right')
 ax[1].set_ylabel('Pressure (mBar/m)')
 ax[1].grid(True, which = 'both')
 ax[2].plot(slslice)
 ax[2].plot(rlslice)
 ax[2].plot(x2sslice)
-ax[2].legend(["Smooth", 'Rough', 'ūx2 from flowrate'], loc='upper right')
+ax[2].legend(['Rough', 'ūx2 from flowrate'], loc='upper right')
 ax[2].set_ylabel('Speed (m/s)')
 ax[2].grid(True, which = 'both')
 plt.show()

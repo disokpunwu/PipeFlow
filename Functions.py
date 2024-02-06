@@ -40,7 +40,7 @@ def sql_data(experiment):
     return pressure, laser1, laser2
 
 
-#gathering data from the sql database without laser
+#gathering data from the sql database without lasers
 def sql_data1(experiment):
     url_object = URL.create('mysql+mysqlconnector',
                         username = 'root',
@@ -54,6 +54,20 @@ def sql_data1(experiment):
     return pressure
 
 
+#gathering data from the sql database without laser1
+def sql_data2(experiment):
+    url_object = URL.create('mysql+mysqlconnector',
+                        username = 'root',
+                        password = '***REMOVED***',
+                        host = '***REMOVED***',
+                        database = experiment,)
+    my_eng = create_engine(url_object)
+
+    pressure = pd.read_sql_table('pressure', my_eng)
+    pressure = pressure.set_index('index')
+    laser2 = pd.read_sql_table('laser2', my_eng)
+    laser2 = laser2.set_index('index')
+    return pressure, laser2
 
 
 
@@ -436,7 +450,15 @@ def reynolds_number(tdms):
     flowrate['Flow Rate Time'] = flowrate['Flow Rate Time'].round(2)
     flowrate['Flow Rate Time'] = flowrate['Flow Rate Time'].drop_duplicates(keep='first')
     flowrate = flowrate.dropna()
-    flowrate['Reynolds Number'] = (1004*(11*10**(-3))*flowrate['Flow Rate']/(60*1000)*1/((11*10**(-3)/2)**2*math.pi))/(0.9096*10**(-3))
+    diameter = 11 * (10**(-3))
+    crossSectionalArea = (math.pi * diameter**2)/4
+
+    density = 1004 # kg/m^3
+    dynamicViscosity = 0.9096 * 10**-3
+    # flowrate['Flow Rate'] is l/min = 10cm^3 / minute = 0.1m^3 / min
+    metresCubedPerSecond = flowrate['Flow Rate'] * (0.1**3) / 60
+    velocity = metresCubedPerSecond / crossSectionalArea
+    flowrate['Reynolds Number'] = (density*diameter*velocity)/(dynamicViscosity)
     reynolds = flowrate[['Flow Rate Time', 'Reynolds Number']]
     reynolds = reynolds.set_index('Flow Rate Time')
     return reynolds
