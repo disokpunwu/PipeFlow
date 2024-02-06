@@ -5,10 +5,10 @@ from Functions import *
 experiment = ''
 
 
-data = sql_data1(experiment)
-pressure = data
+data = sql_data(experiment)
+pressure = data[0]
 laser1 = data[1]
-laser2 = data[1]
+laser2 = data[2]
 
 #reynolds number
 reynolds = reynolds_number(pressure)

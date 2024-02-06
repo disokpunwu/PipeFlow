@@ -150,7 +150,7 @@ tur = tur.set_index('Reynolds Number')
 #-----------------------------------------------------------------------------------------------Graph
 plt.plot(friction11)
 plt.plot(friction)
-#plt.plot(friction1)
+plt.plot(friction1)
 plt.plot(lam)
 plt.plot(tur)
 plt.xlabel('log Re')
