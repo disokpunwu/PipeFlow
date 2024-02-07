@@ -33,29 +33,25 @@ def read_table(sql_engine, table_name):
     dataframe = dataframe.set_index('index')
     return dataframe
 
-def read_tables(sql_engine, table_names):
+def read_tables(experiment, table_names):
+    sql_engine = create_sql_engine(experiment)
     # List comprehension calling the function
     # once for each element of the table_names list
     return [read_table(sql_engine, name) for name in table_names]
 
 #gathering data from the sql database
 def sql_data(experiment):
-    my_eng = create_sql_engine(experiment)
-
-    (pressure, laser1, laser2) = read_tables(my_eng, ['pressure', 'laser1', 'laser2'])
+    (pressure, laser1, laser2) = read_tables(experiment, ['pressure', 'laser1', 'laser2'])
     return pressure, laser1, laser2
 
 #gathering data from the sql database without lasers
 def sql_data1(experiment):
-    my_eng = create_sql_engine(experiment)
-    return read_table(my_eng, 'pressure')
+    return read_table(experiment, 'pressure')
 
 
 #gathering data from the sql database without laser1
 def sql_data2(experiment):
-    my_eng = create_sql_engine(experiment)
-
-    (pressure, laser2) = read_tables(my_eng, ['pressure', 'laser2'])
+    (pressure, laser2) = read_tables(experiment, ['pressure', 'laser2'])
     return pressure, laser2
 
 
