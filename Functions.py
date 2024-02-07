@@ -19,57 +19,44 @@ username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
 password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
 host = os.getenv("PIPEFLOW_DATABASE_HOST")
 
-#gathering data from the sql database
-def sql_data(experiment):
+def create_sql_engine(experiment):
     url_object = URL.create('mysql+mysqlconnector',
                         username = username,
                         password = password,
                         host = host,
                         database = experiment,)
     my_eng = create_engine(url_object)
+    return my_eng
 
-    pressure = pd.read_sql_table('pressure', my_eng)
-    pressure = pressure.set_index('index')
-    laser1 = pd.read_sql_table('laser1', my_eng)
-    laser1 = laser1.set_index('index')
-    laser2 = pd.read_sql_table('laser2', my_eng)
-    laser2 = laser2.set_index('index')
+def read_table(sql_engine, table_name):
+    dataframe = pd.read_sql_table(table_name, sql_engine)
+    dataframe = dataframe.set_index('index')
+    return dataframe
+
+def read_tables(sql_engine, table_names):
+    # List comprehension calling the function
+    # once for each element of the table_names list
+    return [read_table(sql_engine, name) for name in table_names]
+
+#gathering data from the sql database
+def sql_data(experiment):
+    my_eng = create_sql_engine(experiment)
+
+    (pressure, laser1, laser2) = read_tables(my_eng, ['pressure', 'laser1', 'laser2'])
     return pressure, laser1, laser2
-
 
 #gathering data from the sql database without lasers
 def sql_data1(experiment):
-    url_object = URL.create('mysql+mysqlconnector',
-                        username = username,
-                        password = password,
-                        host = host,
-                        database = experiment,)
-    my_eng = create_engine(url_object)
-
-    pressure = pd.read_sql_table('pressure', my_eng)
-    pressure = pressure.set_index('index')
-    return pressure
+    my_eng = create_sql_engine(experiment)
+    return read_table(my_eng, 'pressure')
 
 
 #gathering data from the sql database without laser1
 def sql_data2(experiment):
-    url_object = URL.create('mysql+mysqlconnector',
-                        username = username,
-                        password = password,
-                        host = host,
-                        database = experiment,)
-    my_eng = create_engine(url_object)
+    my_eng = create_sql_engine(experiment)
 
-    pressure = pd.read_sql_table('pressure', my_eng)
-    pressure = pressure.set_index('index')
-    laser2 = pd.read_sql_table('laser2', my_eng)
-    laser2 = laser2.set_index('index')
+    (pressure, laser2) = read_tables(my_eng, ['pressure', 'laser2'])
     return pressure, laser2
-
-
-
-
-
 
 
 
