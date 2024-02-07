@@ -13,10 +13,7 @@ EntryPressure   = []
 ExitPressure    = []
 
 #seperating data
-data = sql_data2(experiment)
-pressure = data[0]
-laser1 = data[1]
-laser2 = data[2]
+(pressure, laser1, laser2) = read_tables(experiment, ['pressure', 'laser1', 'laser2'])
 
 
 #creating the dataframes

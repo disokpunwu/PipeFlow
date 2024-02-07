@@ -2,8 +2,7 @@ from Functions import *
 
 #fetching file data
 experiment = ''
-data = sql_data1(experiment)
-pressure = data
+(pressure) = read_tables(experiment, 'pressure')
 
 
 #reynolds range

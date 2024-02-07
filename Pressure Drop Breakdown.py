@@ -11,8 +11,7 @@ EntryPressure   = []
 ExitPressure    = []
 
 #seperating data from database
-data = sql_data1(experiment)
-pressure = data
+pressure = read_tables(experiment, 'pressure')
 
 #calculating reynolds number
 reynolds = reynolds_number(pressure)

@@ -11,10 +11,7 @@ ReservoirHeight = []
 EntryPressure   = []
 ExitPressure    = []
 
-data = sql_data(experiment)
-pressure = data[0]
-laser1 = data[1]
-laser2 = data[2]
+(pressure, laser1, laser2) = read_tables(experiment, ['pressure', 'laser1', 'laser2'])
 
 #slices
 First= StartTimes[Step-1]

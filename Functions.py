@@ -39,23 +39,6 @@ def read_tables(experiment, table_names):
     # once for each element of the table_names list
     return [read_table(sql_engine, name) for name in table_names]
 
-#gathering data from the sql database
-def sql_data(experiment):
-    (pressure, laser1, laser2) = read_tables(experiment, ['pressure', 'laser1', 'laser2'])
-    return pressure, laser1, laser2
-
-#gathering data from the sql database without lasers
-def sql_data1(experiment):
-    return read_table(experiment, 'pressure')
-
-
-#gathering data from the sql database without laser1
-def sql_data2(experiment):
-    (pressure, laser2) = read_tables(experiment, ['pressure', 'laser2'])
-    return pressure, laser2
-
-
-
 #function to read TDMS files
 def tdms_df(path):
     tdms_file = TdmsFile(path)
