@@ -34,7 +34,7 @@ url_object = URL.create('mysql+mysqlconnector',
 #creating the database in mySQL
 mydb = mysql.connector.connect(
   host=host,
-  user=user,
+  user=username,
   password=password
 )
 mycursor = mydb.cursor()

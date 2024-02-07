@@ -36,7 +36,7 @@ mov1 = pd.DataFrame()
 mov1['rolling'] = ldv2.rolling(10).mean()
 
 #standard results graph
-fig, ax = plt.subplots(2,1, sharex= True)
+fig, ax = plt.subplots(3,1, sharex= True)
 ax[0].plot(reynolds['Reynolds Number'])
 ax[0].legend(["Reynolds"], loc='upper right')
 ax[0].set_ylabel('Reynolds Number')
