@@ -2,6 +2,8 @@ from Functions import *
 
 #fetching file data
 experiment = ''
+engine = create_sql_engine(experiment)
+(pressure) = read_table(engine, 'pressure')
 
 #notes from experiment
 StartTimes      = []
@@ -9,9 +11,6 @@ EndTimes        = []
 ReservoirHeight = []
 EntryPressure   = []
 ExitPressure    = []
-
-#seperating data from database
-pressure = read_tables(experiment, 'pressure')
 
 #calculating reynolds number
 reynolds = reynolds_number(pressure)

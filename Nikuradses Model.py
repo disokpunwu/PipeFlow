@@ -2,7 +2,8 @@ from Functions import *
 
 #fetching file data
 experiment = ''
-(pressure) = read_tables(experiment, 'pressure')
+engine = create_sql_engine(experiment)
+(pressure) = read_table(engine, 'pressure')
 
 
 #reynolds range
@@ -154,6 +155,6 @@ plt.plot(lam)
 plt.plot(tur)
 plt.xlabel('log Re')
 plt.ylabel('log f')
-plt.legend(['Smooth', 'Rough', '64/Re', 'Blasius'])
+plt.legend(['Smooth', 'Rough1', 'Rough2', '64/Re', 'Blasius'])
 plt.grid() 
 plt.show()

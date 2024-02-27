@@ -3,6 +3,9 @@ from Functions import *
 
 #fetching file data
 experiment = ''
+engine = create_sql_engine(experiment)
+(pressure) = read_table(engine, 'pressure')
+
 Step = 1
 
 StartTimes      = []
@@ -10,9 +13,6 @@ EndTimes        = []
 ReservoirHeight = []
 EntryPressure   = []
 ExitPressure    = []
-
-#seperating data
-(pressure, laser1, laser2) = read_tables(experiment, ['pressure', 'laser1', 'laser2'])
 
 #pressure readings
 smooth = pressure_df_smooth(pressure)
