@@ -1,7 +1,7 @@
 from Functions import *
 
 #fetching file data
-experiment = ''
+experiment = '15p_rescan5'
 engine = create_sql_engine(experiment)
 (pressure) = read_table(engine, 'pressure')
 
