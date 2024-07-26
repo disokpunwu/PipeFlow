@@ -30,7 +30,7 @@ def create_sql_engine(experiment):
 
 def read_table(sql_engine, table_name):
     dataframe = pd.read_sql_table(table_name, sql_engine)
-    dataframe = dataframe.set_index('index')
+    #dataframe = dataframe.set_index('index')
     return dataframe
 
 def read_tables(experiment, table_names):
@@ -416,7 +416,7 @@ def reynolds_number(tdms):
     diameter = 11 * (10**(-3))
     crossSectionalArea = (math.pi * diameter**2)/4
 
-    density = 1004 # kg/m^3
+    density = 997 # kg/m^3 @ 25 degrees celsius
     dynamicViscosity = 0.9096 * 10**-3
     # flowrate['Flow Rate'] is l/min = 10cm^3 / minute = 0.1m^3 / min
     metresCubedPerSecond = flowrate['Flow Rate'] * (0.1**3) / 60
