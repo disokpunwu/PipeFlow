@@ -14,6 +14,8 @@ from sqlalchemy import create_engine
 from sqlalchemy import URL
 import seaborn as sns
 import os
+import re
+from stat import S_ISDIR, S_ISREG
 
 username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
 password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
@@ -30,7 +32,7 @@ def create_sql_engine(experiment):
 
 def read_table(sql_engine, table_name):
     dataframe = pd.read_sql_table(table_name, sql_engine)
-    dataframe = dataframe.set_index('index')
+    #dataframe = dataframe.set_index('index')
     return dataframe
 
 def read_tables(experiment, table_names):
@@ -74,6 +76,13 @@ def pressure_df_2(tdms_df, region: Literal["rough", "smooth"]):
             raise ValueError("Invalid argument, expected 'smooth' or 'rough'")
     frame_subset = tdms_df[['Pressure Time', getPressureColumnName(isRough)]]
     return frame_subset.set_index('Pressure Time')
+
+#format all pressure data for graphing
+def pressure_df3(tdms_df):
+    pressure1 = tdms_df
+    pressure1 = tdms_df[['Flow Rate Time', 'Validyne8-24', 'Validyne 6-32']]
+    pressure = pressure1.set_index('Flow Rate Time')
+    return pressure
 
 def pressure_df_smooth(tdms_df):
     smooth1 = tdms_df
@@ -408,10 +417,10 @@ def laser_std(interpolate):
 
 
 #reynolds number graph
-def reynolds_number(tdms):
-    flowrate = tdms[['Flow Rate Time', 'Flow Rate']]
-    flowrate['Flow Rate Time'] = flowrate['Flow Rate Time'].round(2)
-    flowrate['Flow Rate Time'] = flowrate['Flow Rate Time'].drop_duplicates(keep='first')
+def reynolds_number(flowrateDataFrame):
+    flowrate = flowrateDataFrame[['Flow Rate Time', 'Flow Rate']]
+    flowrate.loc[:, 'Flow Rate Time'] = flowrate['Flow Rate Time'].round(2).drop_duplicates(keep='first')
+    # flowrate['Flow Rate Time'] = flowrate['Flow Rate Time'].drop_duplicates(keep='first')
     flowrate = flowrate.dropna()
     diameter = 11 * (10**(-3))
     crossSectionalArea = (math.pi * diameter**2)/4
@@ -428,8 +437,13 @@ def reynolds_number(tdms):
 
 #laminar delta p graph
 def re64(reynolds):
-    reynolds['64/Re'] = 64/reynolds['Reynolds Number']
-    reynolds['Laminar Delta P'] = reynolds['64/Re']*1/(11*10**(-3))*1004/2*(reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2/100
+    Re = reynolds['Reynolds Number']
+    diameter = 11*10**(-3)
+    density = 1004
+    dv = 0.9096*10**(-3)
+    kinematic_viscosity = 0.8926e-6  # 流体の動粘性係数 (m^2/s)
+    reynolds['64/Re'] = 64/Re
+    reynolds['Laminar Delta P'] = (64*Re) * dv * kinematic_viscosity / (200*pow(diameter,3))
     Re64 = reynolds.drop('Reynolds Number', axis='columns')
     Re64 = Re64.drop('64/Re', axis='columns')
     return Re64
@@ -460,7 +474,210 @@ def blasius_rough(reynolds):
 
 #turbulant delta p graph (rough)
 def haaland_rough(reynolds):
-     reynolds['Friction'] = (1/(-1.8*np.log10(((3.667/11)/3.7)**1.11+6.9/reynolds['Reynolds Number'])))**2
+     reynolds['Friction'] = (1/(-1.8*np.log10(((3.667/.11)/3.7)**1.11+6.9/reynolds['Reynolds Number'])))**2
      reynolds['Haaland'] = (reynolds['Friction'])*(1004/2)*((reynolds['Reynolds Number']/(1004*11*1e-3)*(0.9096*10**(-3)))**2)/(11*10**(-3))/100
      haaland = reynolds['Haaland']
      return haaland
+
+#Shortcut for retrieving the path of experiment roughnesses
+def getRoughnessPath(roughness):
+    
+    rootPath = r'C:\Users\PipeFlow\Desktop\Experiments'
+    roughnessPath = os.path.join(rootPath, 'Data', 'New', 'Valley', roughness)
+    if S_ISDIR(os.stat(roughnessPath).st_mode):
+        return roughnessPath
+    else:
+        raise RuntimeError("Did not file a directory at " + roughnessPath)
+
+#Shortcut for retrieving the path of specific experiments
+def getExperimentPath(roughness, experiment, stage):
+    expectedPath = os.path.join(getRoughnessPath(roughness), experiment, f"{stage}.tdms")
+    if S_ISREG(os.stat(expectedPath).st_mode):
+        return expectedPath
+    else:
+        raise RuntimeError("Did not file a regular file at " + expectedPath)
+
+#Allows for the uploading of experiments to the database
+def DataBaseUpload(experiment, path):
+    pressure = tdms_df(path)
+    username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
+    password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
+    host = os.getenv("PIPEFLOW_DATABASE_HOST")
+    url_object = URL.create('mysql+mysqlconnector',
+                            username = username,
+                            password = password,
+                            host = host,
+                            database = experiment,)
+    mydb = mysql.connector.connect(
+     host=host,
+      user=username,
+     password=password
+    )
+    mycursor = mydb.cursor()
+    mycursor.execute("CREATE SCHEMA "+ experiment)
+    my_eng = create_engine(url_object)
+    pressure.to_sql(name='pressure', con=my_eng, if_exists = 'fail', index=True, chunksize=1000)
+
+
+#rounds the number up
+def round_up(value, to_next):
+    return int(math.ceil(value / to_next)) * to_next
+
+#creates nukuradse diagram from pressure data
+def process_experiment(experiment, zeroshift = .00000001, start= 150, stop = 200, step = 200, pressureSensorLength = 1, diameter = 11 * (10**-3)):
+    #fetching file data
+    engine = create_sql_engine(experiment)
+    (pressure) = read_table(engine, 'pressure')
+    fileDuration = round_up(pressure['Flow Rate Time'].max(), 100)
+    #Timestamp for Steps
+    StartTimes = np.arange(start,fileDuration,step)
+    EndTimes = np.arange(stop,fileDuration+step,step)
+    numSteps = StartTimes.size
+    #reynolds number
+    reynolds = reynolds_number(pressure)
+    #constants
+    density = 1004 # kg/m^3
+    dynamicViscosity = 0.9096 * (10**-3)
+    mbarToPa = 100
+    #velocity
+    velSquared = ((reynolds['Reynolds Number']*dynamicViscosity)/(density*diameter))**2
+    #---------------------------------------------------Rough Section
+    #validyne6-32
+    val632 = pressure[['Flow Rate Time', 'Validyne 6-32']]
+    val632.loc[:, 'Flow Rate Time'] = val632['Flow Rate Time'].round(2)
+    val632 = val632.set_index('Flow Rate Time')
+    val632['Validyne 6-32'] = val632['Validyne 6-32']-zeroshift 
+    #friction factor for rough section
+    rough = (val632['Validyne 6-32']*mbarToPa * 2 * diameter) / (velSquared * density * pressureSensorLength)
+    rough = pd.DataFrame(rough, columns=['Friction Factor'])
+    rough['Reynolds Number'] = reynolds
+    rough = rough[['Reynolds Number', 'Friction Factor']]
+    rough.dropna(inplace=True)
+    #averaging pressure data
+    fri = []
+    re = []
+    currentIndex = 0
+    while currentIndex < numSteps:
+        First = StartTimes[currentIndex]
+        Last = EndTimes[currentIndex]
+        x = slice(First,Last)
+        slicer = rough.loc[x, :] # All columns, rows between First and Last
+        avg = slicer['Friction Factor'].mean()
+        avg1 = slicer['Reynolds Number'].mean()
+        fri.append(avg)
+        re.append(avg1)
+        currentIndex += 1
+    fri = np.array(fri)
+    re = np.array(re)
+    d = {'Reynolds Number': re, 'Friction Factor':fri}
+    rough_friction = pd.DataFrame(d)
+    rough_friction = np.log10(rough_friction)
+    rough_friction = rough_friction.set_index('Reynolds Number')
+    #---------------------------------------------------Smooth Section
+    #validyne8-24
+    val824 = pressure[['Flow Rate Time', 'Validyne8-24']]
+    val824.loc[:, 'Flow Rate Time'] = val824['Flow Rate Time'].round(2)
+    val824.loc[:, 'Validyne8-24'] = val824['Validyne8-24']/2
+    val824 = val824.set_index('Flow Rate Time')
+    #friction factor
+    smooth = (val824['Validyne8-24']*mbarToPa * 2 * diameter) / (velSquared * density * pressureSensorLength)
+    smooth = smooth.tail(-1)
+    smooth = pd.DataFrame(smooth, columns=['Friction Factor'])
+    smooth['Reynolds Number'] = reynolds
+    smooth = smooth[['Reynolds Number', 'Friction Factor']]
+    smooth.dropna(inplace=True)
+    #averaging pressure data
+    fri = []
+    re = []
+    currentIndex = 0
+    while currentIndex < numSteps:
+        First = StartTimes[currentIndex]
+        Last = EndTimes[currentIndex]
+        x = slice(First,Last)
+        slicer = smooth.loc[x, :] # all columns, times between First and Last
+        avg = slicer['Friction Factor'].mean()
+        avg1 = slicer['Reynolds Number'].mean()
+        fri.append(avg)
+        re.append(avg1)
+        currentIndex = currentIndex+1
+    fri = np.array(fri)
+    re = np.array(re)
+    d = {'Reynolds Number': re, 'Friction Factor':fri}
+    smooth_friction = pd.DataFrame(d)
+    smooth_friction = np.log10(smooth_friction)
+    smooth_friction = smooth_friction.set_index('Reynolds Number')
+
+    result = dict()
+    result['smooth'] = smooth_friction
+    result['rough'] = rough_friction
+    return result
+
+#creates nikuradse diagram with zeroshift incorporated
+def Process_ZeroShift_Experiment(roughness, itteration):
+    # locating file data
+    location = r"C:\Users\PipeFlow\Desktop\Experiments\Data\New\Valley"
+    experiment = (f"{roughness}_{itteration}")
+    beforepath = (f"{location}\{roughness}\{itteration}\{'before'}.tdms")
+    path = (f"{location}\{roughness}\{itteration}\{itteration}.tdms")
+    afterpath = (f"{location}\{roughness}\{itteration}\{'after'}.tdms")
+    # calculating mean zero-shift before and after experiment
+    before = tdms_df(beforepath)
+    before = before['Validyne 6-32'].mean()
+    after = tdms_df(afterpath)
+    after = after['Validyne 6-32'].mean()
+    #applying the zeroshift to the data
+    beforezeroshift = process_experiment(experiment, zeroshift= before)
+    beforezeroshift = beforezeroshift['rough']
+    nozeroshift = process_experiment(experiment)
+    nozeroshift = nozeroshift['rough']
+    afterzeroshift = process_experiment(experiment, zeroshift= after)
+    afterzeroshift = afterzeroshift['rough']
+    result = dict()
+    result['before'] = beforezeroshift
+    result['actual'] = nozeroshift
+    result['after'] = afterzeroshift
+    return result
+
+# #creates nikuradse diagram from excel measurements
+# def Process_Excel_Experiemnt(roughness, experiment):
+#     path = r"C:\Users\PipeFlow\Desktop\Experiments\Data\New\Valley"
+#     ExcelPath = os.path.join(path, roughness, experiment, experiment)
+#     FinalPath = (f"{ExcelPath}.xlsx")
+#     data = pd.read_excel(FinalPath)
+#     #constants
+#     pressureSensorLength = 1 
+#     diameter = 11 * (10**-3)
+#     density = 1004 # kg/m^3
+#     dynamicViscosity = 0.9096 * (10**-3)
+#     mbarToPa = 100
+#     velSquared = ((data['Reynolds Number']*dynamicViscosity)/(density*diameter))**2
+#     data['Friction'] = (data['Pressure']*mbarToPa * 2 * diameter) / (velSquared * density * pressureSensorLength)
+#     data = data[['Reynolds Number', 'Friction']]
+#     data = np.log10(data)
+#     data.set_index('Reynolds Number', inplace=True)
+#     return data
+
+#creates nikuradse diagram from excel measurements
+def Process_Excel_Experiemnt(roughness, experiment):
+    path = r"C:\Users\PipeFlow\Desktop\Experiments\Data\New\Valley"
+    ExcelPath = os.path.join(path, roughness, experiment, experiment)
+    FinalPath = (f"{ExcelPath}.xlsx")
+    pressure = pd.read_excel(FinalPath)
+    sqldata = process_experiment(f"{roughness}_{experiment}")
+    rough = sqldata['rough'].reset_index()
+    data = pd.DataFrame()
+    data['Reynolds Number'] = 10**(rough['Reynolds Number'])
+    data['Pressure'] = pressure['Pressure']/1.02
+
+    #constants
+    pressureSensorLength = 1 
+    diameter = 11 * (10**-3)
+    density = 1004 # kg/m^3
+    dynamicViscosity = 0.9096 * (10**-3)
+    mbarToPa = 100
+    velSquared = ((data['Reynolds Number']*dynamicViscosity)/(density*diameter))**2
+    data['Friction'] = (data['Pressure']*mbarToPa * 2 * diameter) / (velSquared * density * pressureSensorLength)
+    data = data[['Reynolds Number', 'Friction']]
+    data = np.log10(data)
+    data.set_index('Reynolds Number', inplace=True)
+    return data
