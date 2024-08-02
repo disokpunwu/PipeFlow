@@ -1,4 +1,4 @@
-from Functions import process_experiment
+from Functions import process_experiment, loadTDMSData
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -48,7 +48,11 @@ tur = tur.set_index('Reynolds Number')
 
 results = dict()
 for experiment in experiments:
-    results[experiment] = process_experiment(experiment)
+    roughness = experiment[:2]
+    iteration = experiment[3:]
+    
+    data = loadTDMSData(roughness, experiment)
+    results[experiment] = process_experiment(data)
 print(results)
 legendEntries = []
 for experiment, result in results.items():

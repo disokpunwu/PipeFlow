@@ -16,6 +16,7 @@ import seaborn as sns
 import os
 import re
 from stat import S_ISDIR, S_ISREG
+from pathlib import Path
 
 username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
 password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
@@ -524,10 +525,7 @@ def round_up(value, to_next):
     return int(math.ceil(value / to_next)) * to_next
 
 #creates nukuradse diagram from pressure data
-def process_experiment(experiment, zeroshift = .00000001, start= 150, stop = 200, step = 200, pressureSensorLength = 1, diameter = 11 * (10**-3)):
-    #fetching file data
-    engine = create_sql_engine(experiment)
-    (pressure) = read_table(engine, 'pressure')
+def process_experiment(pressure, zeroshift = .00000001, start= 150, stop = 200, step = 200, pressureSensorLength = 1, diameter = 11 * (10**-3)):
     fileDuration = round_up(pressure['Flow Rate Time'].max(), 100)
     #Timestamp for Steps
     StartTimes = np.arange(start,fileDuration,step)
@@ -613,24 +611,20 @@ def process_experiment(experiment, zeroshift = .00000001, start= 150, stop = 200
     return result
 
 #creates nikuradse diagram with zeroshift incorporated
-def Process_ZeroShift_Experiment(roughness, itteration):
-    # locating file data
-    location = r"C:\Users\PipeFlow\Desktop\Experiments\Data\New\Valley"
-    experiment = (f"{roughness}_{itteration}")
-    beforepath = (f"{location}\{roughness}\{itteration}\{'before'}.tdms")
-    path = (f"{location}\{roughness}\{itteration}\{itteration}.tdms")
-    afterpath = (f"{location}\{roughness}\{itteration}\{'after'}.tdms")
+def Process_ZeroShift_Experiment(roughness, iteration):
+    #fetching file data
+    pressure = loadTDMSData(roughness, iteration)
+    before = loadTDMSData(roughness, iteration, filename='before.tdms')
+    after = loadTDMSData(roughness, iteration, filename='after.tdms')
     # calculating mean zero-shift before and after experiment
-    before = tdms_df(beforepath)
-    before = before['Validyne 6-32'].mean()
-    after = tdms_df(afterpath)
-    after = after['Validyne 6-32'].mean()
+    beforeTime = before['Validyne 6-32'].mean()
+    afterTime = after['Validyne 6-32'].mean()
     #applying the zeroshift to the data
-    beforezeroshift = process_experiment(experiment, zeroshift= before)
+    beforezeroshift = process_experiment(pressure, zeroshift= beforeTime)
     beforezeroshift = beforezeroshift['rough']
-    nozeroshift = process_experiment(experiment)
+    nozeroshift = process_experiment(pressure)
     nozeroshift = nozeroshift['rough']
-    afterzeroshift = process_experiment(experiment, zeroshift= after)
+    afterzeroshift = process_experiment(pressure, zeroshift= afterTime)
     afterzeroshift = afterzeroshift['rough']
     result = dict()
     result['before'] = beforezeroshift
@@ -659,11 +653,12 @@ def Process_ZeroShift_Experiment(roughness, itteration):
 
 #creates nikuradse diagram from excel measurements
 def Process_Excel_Experiemnt(roughness, experiment):
-    path = r"C:\Users\PipeFlow\Desktop\Experiments\Data\New\Valley"
-    ExcelPath = os.path.join(path, roughness, experiment, experiment)
+    rootDir = os.path.join(Path.home(), 'Desktop', 'Experiments', 'Data', 'New', 'Valley')
+    ExcelPath = os.path.join(rootDir, roughness, experiment, experiment)
     FinalPath = (f"{ExcelPath}.xlsx")
     pressure = pd.read_excel(FinalPath)
-    sqldata = process_experiment(f"{roughness}_{experiment}")
+    tdmsData = loadTDMSData(roughness, experiment, rootDir)
+    sqldata = process_experiment(tdmsData)
     rough = sqldata['rough'].reset_index()
     data = pd.DataFrame()
     data['Reynolds Number'] = 10**(rough['Reynolds Number'])
@@ -681,3 +676,14 @@ def Process_Excel_Experiemnt(roughness, experiment):
     data = np.log10(data)
     data.set_index('Reynolds Number', inplace=True)
     return data
+
+def loadTDMSData(
+    roughness,
+    iteration,
+    rootDir = os.path.join(Path.home(), 'Desktop', 'Experiments', 'Data', 'New', 'Valley'),
+    filename = None
+):
+    fname = filename if filename else f"{iteration}.tdms"
+    path = os.path.join(rootDir, roughness, iteration, fname)
+    d = tdms_df(path)
+    return d
