@@ -2,8 +2,9 @@
 from Functions import *
 
 #Define experiment
-roughness = '2v'
-experiment = 'Rescan88'
+roughness = '4v'
+experiment = 'Rescan15'
+
 
 
 #Establsih Stages of Experiments
@@ -16,9 +17,11 @@ actualpath = getExperimentPath(roughness, experiment, actual)
 actualtdms = tdms_df(actualpath)
 actualpressure = actualtdms['Validyne 6-32']
 
+
 #Retrieve Data from Before Experiment
 beforepath = getExperimentPath(roughness, experiment, before)
 beforetdms = tdms_df(beforepath)
+
 beforepressure = beforetdms['Validyne 6-32']
 
 #Retrieve Data from After Experiment

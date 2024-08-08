@@ -1,7 +1,8 @@
 from Functions import *
 
-#path = r'C:\Users\PipeFlow\Desktop\Research\20240517Rotation\20240802\Fully Developed Experiments.xlsx'
-path = os.path.join(os.curdir, 'Fully Developed Experiments.xlsx')
+#-------------------------------------------------------------------------------------------------------HISTOGRAM
+#path to excel file with developed status of experiments
+path = r'C:\Users\PipeFlow\Desktop\Research\20240517Rotation\20240809\Fully Developed Experiments.xlsx'
 
 #Filtering through experiments to return only developed experiments
 Excel = pd.read_excel(path)
@@ -27,10 +28,7 @@ reynolds = []
 friction = []
 while currentIndex < counter:
     experiment = experiments[currentIndex]
-    roughness = experiment[:2]
-    iteration = experiment[3:]
-    
-    Data = Process_ZeroShift_Experiment(roughness, iteration)['before'].reset_index()
+    Data = Process_ZeroShift_Experiment(experiment[:2], experiment[3:])['before'].reset_index()
     reynolds += Data['Reynolds Number'].tolist()
     friction += Data['Friction Factor'].tolist()
     currentIndex += 1
@@ -44,18 +42,56 @@ allexperiments['Friction Factor'] = friction
 constant = allexperiments.loc[allexperiments['Reynolds Number'] >= 3.8].set_index('Reynolds Number')
 
 
-print(len(constant))
+#-------------------------------------------------------------------------------------------------------NIKURADSE
+#reynolds range
+num = np.arange(100,31600,100)
+num1 = np.arange(1200,31600,100)
+
+#64/re line
+lam = pd.DataFrame(num, columns=['Reynolds Number'])
+lam['64/re'] = 64/lam['Reynolds Number']
+lam = np.log10(lam)
+lam = lam.set_index('Reynolds Number')
+
+#Blasius line
+tur = pd.DataFrame(num1, columns=['Reynolds Number'])
+tur['blasius'] = .316/(tur['Reynolds Number']**.25)
+tur = np.log10(tur)
+tur = tur.set_index('Reynolds Number')
+
+#creating dictionary to store nikuradse graphs
+experimentResults = dict()
+for experiment in experiments:
+    experimentResults[experiment] = Process_ZeroShift_Experiment(experiment[:2], experiment[3:])
+legendEntries = []
 
 
+#Creating subplot graph and adding the histogram
 fig, ax = plt.subplots(2, 1, figsize = (6,4))
 constant['Friction Factor'].plot(kind = 'hist', density = True, bins= 10)
 constant['Friction Factor'].plot(kind='kde')
-ax.set_xlabel('Friction Factor')
-ax.set_xlim(-1.135, -1.1)
-ax.set_ylim(0,100)
-ax.set_yticks([])
-ax.tick_params(left=False, bottom=False)
-for ax, spine in ax.spines.items():
-    spine.set_visible(False)
+ax[1].set_xlabel('Friction Factor')
+ax[1].set_xlim(-1.135, -1.1)
+ax[1].set_ylim(0,100)
+ax[1].set_yticks([])
+ax[1].tick_params(left=False, bottom=False)
 plt.style.use("bmh")
+
+
+#populating nikuradse plots
+for experiment, experimentResult in experimentResults.items():
+        before, actual, after = [experimentResult[x] for x in ['before', 'actual', 'after']]
+        before = before.iloc[1:]
+        ax[0].plot(before)
+        legendEntries.append('Transducer (%s)' % experiment)
+
+
+
+#adding nikuradse graph to subplot
+ax[0].plot(tur)
+ax[0].plot(lam)
+ax[0].set_ylabel('Friction Factor')
+ax[0].set_xlabel('Reynolds Number')
+ax[0].grid()
+ax[0].legend(legendEntries)
 plt.show()

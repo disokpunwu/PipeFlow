@@ -4,9 +4,10 @@ from os.path import exists
 #Creating dictionary for all experiments
 experiments = []
 experimentConfig = {
-    "2v": { 'list': [87, 88]},
-    # "4v": { 'list': [1,2,3]},
-    # "8v": { 'list': [1,2,3]},
+    #"2v": { 'list': [89, 90, 91, 92, 93, 94]},
+    #"2v": { 'list': [22, 89]},
+    "4v": { 'list': [15]},
+    #"8v": { 'list': [14]},
 }
 
 #Creating list of all experiments based on configuration in experimentConfig dictionary
@@ -38,9 +39,9 @@ for k, v in ExcelSearch.items():
     else:
         continue
 
-# #putting remaining experiments in a list
-# Remainder = [x for x in experiments if x not in Zeroshifts]
-# Regular = [x for x in Remainder if x not in Excels]
+#putting remaining experiments in a list
+Remainder = [x for x in experiments if x not in Zeroshifts]
+experiments = [x for x in Remainder if x not in Excels]
 
 #------------------------------64/re & Blasius
 #reynolds range
@@ -65,7 +66,6 @@ if Zeroshifts:
     ZeroShiftResults = dict()
     for Zeroshift in Zeroshifts:
         ZeroShiftResults[Zeroshift] = Process_ZeroShift_Experiment(Zeroshift[:2], Zeroshift[3:])
-        ZeroShiftResults[Zeroshift] = ZeroShiftResults[Zeroshift]
     print(ZeroShiftResults)
     legendEntries = []
     for Zeroshift, ZeroShiftResults in ZeroShiftResults.items():
@@ -88,6 +88,18 @@ if Excels:
         legendEntries.append('Monometer (%s)' % Excel)
 else:
     print("No excel experiments found.")
+
+#Plots for regular experiments
+results = dict()
+for experiment in experiments:
+    results[experiment] = process_experiment(experiment)
+print(results)
+for experiment, result in results.items():
+    smooth, rough = [result[x] for x in ['smooth', 'rough']]
+    # plt.plot(smooth)
+    # legendEntries.append("Smooth (%s)" % experiment)
+    plt.plot(rough)
+    legendEntries.append('Actual (%s)' % experiment)
 
 legendEntries.append('64/Re')
 legendEntries.append('Blasius')
