@@ -7,40 +7,11 @@ from matplotlib import pyplot as plt
 import endaq
 import math
 from typing import Literal
-import mysql.connector
-from mysql.connector import Error
-import sqlalchemy
-from sqlalchemy import create_engine
-from sqlalchemy import URL
 import seaborn as sns
 import os
 import re
 from stat import S_ISDIR, S_ISREG
 from pathlib import Path
-
-username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
-password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
-host = os.getenv("PIPEFLOW_DATABASE_HOST")
-
-def create_sql_engine(experiment):
-    url_object = URL.create('mysql+mysqlconnector',
-                        username = username,
-                        password = password,
-                        host = host,
-                        database = experiment,)
-    my_eng = create_engine(url_object)
-    return my_eng
-
-def read_table(sql_engine, table_name):
-    dataframe = pd.read_sql_table(table_name, sql_engine)
-    #dataframe = dataframe.set_index('index')
-    return dataframe
-
-def read_tables(experiment, table_names):
-    sql_engine = create_sql_engine(experiment)
-    # List comprehension calling the function
-    # once for each element of the table_names list
-    return [read_table(sql_engine, name) for name in table_names]
 
 #function to read TDMS files
 def tdms_df(path):
@@ -497,28 +468,6 @@ def getExperimentPath(roughness, experiment, stage):
         return expectedPath
     else:
         raise RuntimeError("Did not file a regular file at " + expectedPath)
-
-#Allows for the uploading of experiments to the database
-def DataBaseUpload(experiment, path):
-    pressure = tdms_df(path)
-    username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
-    password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
-    host = os.getenv("PIPEFLOW_DATABASE_HOST")
-    url_object = URL.create('mysql+mysqlconnector',
-                            username = username,
-                            password = password,
-                            host = host,
-                            database = experiment,)
-    mydb = mysql.connector.connect(
-     host=host,
-      user=username,
-     password=password
-    )
-    mycursor = mydb.cursor()
-    mycursor.execute("CREATE SCHEMA "+ experiment)
-    my_eng = create_engine(url_object)
-    pressure.to_sql(name='pressure', con=my_eng, if_exists = 'fail', index=True, chunksize=1000)
-
 
 #rounds the number up
 def round_up(value, to_next):

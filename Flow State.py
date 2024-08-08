@@ -1,10 +1,14 @@
 #importing Functions
 from Functions import *
 
-#fetching file data
-experiment = ''
-engine = create_sql_engine(experiment)
-(pressure) = read_table(engine, 'pressure')
+#Define experiment
+roughness = '2v'
+experiment = 'Rescan88'
+
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure = tdms_df(actualpath)
+
 
 Step = 1
 
