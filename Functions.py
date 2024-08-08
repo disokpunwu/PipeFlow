@@ -284,10 +284,6 @@ def x2speed_slice_df(formatted_data, Start, End):
     return sliceddata 
 
 
-
-
-
-
 #function to read laser files
 def laser_df(path):
     laser_data = pd.read_csv(path, delimiter='\t')
@@ -452,18 +448,28 @@ def haaland_rough(reynolds):
      return haaland
 
 #Shortcut for retrieving the path of experiment roughnesses
-def getRoughnessPath(roughness):
+def getRoughnessPath(roughness, types = 'Valley'):
     
     rootPath = r'C:\Users\PipeFlow\Desktop\Experiments'
-    roughnessPath = os.path.join(rootPath, 'Data', 'New', 'Valley', roughness)
+    roughnessPath = os.path.join(rootPath, 'Data', 'New', types, roughness)
     if S_ISDIR(os.stat(roughnessPath).st_mode):
         return roughnessPath
     else:
         raise RuntimeError("Did not file a directory at " + roughnessPath)
 
 #Shortcut for retrieving the path of specific experiments
-def getExperimentPath(roughness, experiment, stage):
-    expectedPath = os.path.join(getRoughnessPath(roughness), experiment, f"{stage}.tdms")
+def getExperimentPath(roughness, experiment, stage, types = 'Valley'):
+    newtype = types
+    expectedPath = os.path.join(getRoughnessPath(roughness, types = newtype), experiment, f"{stage}.tdms")
+    if S_ISREG(os.stat(expectedPath).st_mode):
+        return expectedPath
+    else:
+        raise RuntimeError("Did not file a regular file at " + expectedPath)
+
+#Shortcut for retrieving the path of specific LASER experiments
+def getLaserPath(roughness, experiment, laser, types = 'Valley'):
+    newtype = types
+    expectedPath = os.path.join(getRoughnessPath(roughness, types = newtype), experiment, f'laser{laser}.SPEED.MSEBP.txt')
     if S_ISREG(os.stat(expectedPath).st_mode):
         return expectedPath
     else:

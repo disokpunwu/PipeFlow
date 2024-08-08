@@ -1,7 +1,10 @@
 from Functions import *
 
-experiment = ''
-Step =1
+#fetching file data
+roughness = '5p'
+experiment = 'ReScan45'
+types = 'Protrussion'
+Step = 1
 
 
 StartTimes      = []
@@ -11,8 +14,16 @@ EntryPressure   = []
 ExitPressure    = []
 
 
-#seperating data
-(pressure, laser1, laser2) = read_tables(experiment, ['pressure', 'laser1', 'laser2'])
+# Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment, experiment, types)
+print(actualpath)
+pressure = tdms_df(actualpath)
+
+#Retrieve Data from laser
+laserpath1 = getLaserPath(roughness, experiment,'1', types)
+laser1 = laser_df(laserpath1)
+laserpath2 = getLaserPath(roughness, experiment, '2', types)
+laser2 = laser_df(laserpath2)
 
 #reynolds number
 reynolds = reynolds_number(pressure)

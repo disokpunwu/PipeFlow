@@ -25,9 +25,11 @@ pressureSensorLength = 1
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment1 = '4v_ReScan9'
-data1 = sql_data1(experiment1)
-pressure1 = data1
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure1 = tdms_df(actualpath)
 
 
 #reynolds number
@@ -71,9 +73,11 @@ friction1 = friction1.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment2 = '4v_ReScan18'
-data2 = sql_data1(experiment2)
-pressure2 = data2
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure2 = tdms_df(actualpath)
 
 
 #reynolds number
@@ -118,9 +122,11 @@ friction2 = friction2.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment3 = '4v_ReScan18'
-data3 = sql_data1(experiment3)
-pressure3 = data3
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure3 = tdms_df(actualpath)
 
 
 #reynolds number
@@ -165,9 +171,11 @@ friction3 = friction3.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment4 = '10p_ReScan50'
-data4 = sql_data1(experiment4)
-pressure4 = data4
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure4 = tdms_df(actualpath)
 
 
 #reynolds number
@@ -213,9 +221,11 @@ friction4 = friction4.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment5 = '10p_ReScan3'
-data5 = sql_data1(experiment5)
-pressure5 = data5
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure5 = tdms_df(actualpath)
 
 
 #reynolds number
@@ -260,9 +270,11 @@ friction5 = friction5.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment6 = '10p_ReScan4'
-data6 = sql_data1(experiment6)
-pressure6 = data6
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure6 = tdms_df(actualpath)
 
 
 #reynolds number
@@ -307,9 +319,11 @@ friction6 = friction6.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment7 = '10p_ReScan5'
-data7 = sql_data1(experiment7)
-pressure7 = data7
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure7 = tdms_df(actualpath)
 
 #reynolds number
 reynolds7 = reynolds_number(pressure7)
@@ -353,9 +367,11 @@ friction7 = friction7.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment8 = '10p_ReScan6'
-data8 = sql_data1(experiment8)
-pressure8 = data8
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure8 = tdms_df(actualpath)
 
 #reynolds number
 reynolds8 = reynolds_number(pressure8)
@@ -398,9 +414,11 @@ friction8 = friction8.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment9 = '10p_ReScan7'
-data9 = sql_data1(experiment9)
-pressure9 = data9
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure9 = tdms_df(actualpath)
 
 #reynolds number
 reynolds9 = reynolds_number(pressure9)
@@ -444,9 +462,11 @@ friction9 = friction9.set_index('Reynolds Number')
 
 #-----------------------------------------------------------------------------------------------
 #fetching file data
-experiment10 = '10p_ReScan8'
-data10 = sql_data1(experiment10)
-pressure10 = data10
+roughness = ''
+experiment = ''
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure10 = tdms_df(actualpath)
 
 #reynolds number
 reynolds10 = reynolds_number(pressure10)
