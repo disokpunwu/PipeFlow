@@ -1,4 +1,4 @@
-from Functions import process_experiment, loadTDMSData
+from Functions import process_experiment
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 experiments = []
 experimentConfig = {
-    "2v": { 'list': [79]},
-    # "4v": { 'list': [1,2,3]},
+    #"2v": { 'list': [79]},
+    "4v": { 'list': [2]},
     # "8v": { 'list': [1,2,3]},
 
     #"2v": { 'first': 1, 'last': 3 },
@@ -48,11 +48,7 @@ tur = tur.set_index('Reynolds Number')
 
 results = dict()
 for experiment in experiments:
-    roughness = experiment[:2]
-    iteration = experiment[3:]
-    
-    data = loadTDMSData(roughness, experiment)
-    results[experiment] = process_experiment(data)
+    results[experiment] = process_experiment(experiment)
 print(results)
 legendEntries = []
 for experiment, result in results.items():

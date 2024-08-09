@@ -7,11 +7,39 @@ from matplotlib import pyplot as plt
 import endaq
 import math
 from typing import Literal
+import mysql.connector
+from mysql.connector import Error
+import sqlalchemy
+from sqlalchemy import create_engine
+from sqlalchemy import URL
 import seaborn as sns
 import os
 import re
 from stat import S_ISDIR, S_ISREG
-from pathlib import Path
+
+username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
+password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
+host = os.getenv("PIPEFLOW_DATABASE_HOST")
+
+def create_sql_engine(experiment):
+    url_object = URL.create('mysql+mysqlconnector',
+                        username = username,
+                        password = password,
+                        host = host,
+                        database = experiment,)
+    my_eng = create_engine(url_object)
+    return my_eng
+
+def read_table(sql_engine, table_name):
+    dataframe = pd.read_sql_table(table_name, sql_engine)
+    #dataframe = dataframe.set_index('index')
+    return dataframe
+
+def read_tables(experiment, table_names):
+    sql_engine = create_sql_engine(experiment)
+    # List comprehension calling the function
+    # once for each element of the table_names list
+    return [read_table(sql_engine, name) for name in table_names]
 
 #function to read TDMS files
 def tdms_df(path):
@@ -284,6 +312,10 @@ def x2speed_slice_df(formatted_data, Start, End):
     return sliceddata 
 
 
+
+
+
+
 #function to read laser files
 def laser_df(path):
     laser_data = pd.read_csv(path, delimiter='\t')
@@ -475,12 +507,37 @@ def getLaserPath(roughness, experiment, laser, types = 'Valley'):
     else:
         raise RuntimeError("Did not file a regular file at " + expectedPath)
 
+#Allows for the uploading of experiments to the database
+def DataBaseUpload(experiment, path):
+    pressure = tdms_df(path)
+    username = os.getenv("PIPEFLOW_DATABASE_USERNAME")
+    password = os.getenv("PIPEFLOW_DATABASE_PASSWORD")
+    host = os.getenv("PIPEFLOW_DATABASE_HOST")
+    url_object = URL.create('mysql+mysqlconnector',
+                            username = username,
+                            password = password,
+                            host = host,
+                            database = experiment,)
+    mydb = mysql.connector.connect(
+     host=host,
+      user=username,
+     password=password
+    )
+    mycursor = mydb.cursor()
+    mycursor.execute("CREATE SCHEMA "+ experiment)
+    my_eng = create_engine(url_object)
+    pressure.to_sql(name='pressure', con=my_eng, if_exists = 'fail', index=True, chunksize=1000)
+
+
 #rounds the number up
 def round_up(value, to_next):
     return int(math.ceil(value / to_next)) * to_next
 
 #creates nukuradse diagram from pressure data
-def process_experiment(pressure, zeroshift = .00000001, start= 150, stop = 200, step = 200, pressureSensorLength = 1, diameter = 11 * (10**-3)):
+def process_experiment(experiment, zeroshift = .00000001, start= 150, stop = 200, step = 200, pressureSensorLength = 1, diameter = 11 * (10**-3)):
+    #fetching file data
+    engine = create_sql_engine(experiment)
+    (pressure) = read_table(engine, 'pressure')
     fileDuration = round_up(pressure['Flow Rate Time'].max(), 100)
     #Timestamp for Steps
     StartTimes = np.arange(start,fileDuration,step)
@@ -566,20 +623,24 @@ def process_experiment(pressure, zeroshift = .00000001, start= 150, stop = 200, 
     return result
 
 #creates nikuradse diagram with zeroshift incorporated
-def Process_ZeroShift_Experiment(roughness, iteration):
-    #fetching file data
-    pressure = loadTDMSData(roughness, iteration)
-    before = loadTDMSData(roughness, iteration, filename='before.tdms')
-    after = loadTDMSData(roughness, iteration, filename='after.tdms')
+def Process_ZeroShift_Experiment(roughness, itteration):
+    # locating file data
+    location = r"C:\Users\PipeFlow\Desktop\Experiments\Data\New\Valley"
+    experiment = (f"{roughness}_{itteration}")
+    beforepath = (f"{location}\{roughness}\{itteration}\{'before'}.tdms")
+    path = (f"{location}\{roughness}\{itteration}\{itteration}.tdms")
+    afterpath = (f"{location}\{roughness}\{itteration}\{'after'}.tdms")
     # calculating mean zero-shift before and after experiment
-    beforeTime = before['Validyne 6-32'].mean()
-    afterTime = after['Validyne 6-32'].mean()
+    before = tdms_df(beforepath)
+    before = before['Validyne 6-32'].mean()
+    after = tdms_df(afterpath)
+    after = after['Validyne 6-32'].mean()
     #applying the zeroshift to the data
-    beforezeroshift = process_experiment(pressure, zeroshift= beforeTime)
+    beforezeroshift = process_experiment(experiment, zeroshift= before)
     beforezeroshift = beforezeroshift['rough']
-    nozeroshift = process_experiment(pressure)
+    nozeroshift = process_experiment(experiment)
     nozeroshift = nozeroshift['rough']
-    afterzeroshift = process_experiment(pressure, zeroshift= afterTime)
+    afterzeroshift = process_experiment(experiment, zeroshift= after)
     afterzeroshift = afterzeroshift['rough']
     result = dict()
     result['before'] = beforezeroshift
@@ -608,12 +669,11 @@ def Process_ZeroShift_Experiment(roughness, iteration):
 
 #creates nikuradse diagram from excel measurements
 def Process_Excel_Experiemnt(roughness, experiment):
-    rootDir = os.path.join(Path.home(), 'Desktop', 'Experiments', 'Data', 'New', 'Valley')
-    ExcelPath = os.path.join(rootDir, roughness, experiment, experiment)
+    path = r"C:\Users\PipeFlow\Desktop\Experiments\Data\New\Valley"
+    ExcelPath = os.path.join(path, roughness, experiment, experiment)
     FinalPath = (f"{ExcelPath}.xlsx")
     pressure = pd.read_excel(FinalPath)
-    tdmsData = loadTDMSData(roughness, experiment, rootDir)
-    sqldata = process_experiment(tdmsData)
+    sqldata = process_experiment(f"{roughness}_{experiment}")
     rough = sqldata['rough'].reset_index()
     data = pd.DataFrame()
     data['Reynolds Number'] = 10**(rough['Reynolds Number'])
@@ -632,13 +692,99 @@ def Process_Excel_Experiemnt(roughness, experiment):
     data.set_index('Reynolds Number', inplace=True)
     return data
 
-def loadTDMSData(
-    roughness,
-    iteration,
-    rootDir = os.path.join(Path.home(), 'Desktop', 'Experiments', 'Data', 'New', 'Valley'),
-    filename = None
-):
-    fname = filename if filename else f"{iteration}.tdms"
-    path = os.path.join(rootDir, roughness, iteration, fname)
-    d = tdms_df(path)
-    return d
+
+#plots the constant line band forfully developed portion of Nikuradse graph
+def constant_lines(path, roughness):
+    #Filtering through experiments to return only developed experiments
+    Excel = pd.read_excel(path)
+    DevelopedExperiments = Excel.loc[Excel['Developed'] == 'Yes']
+
+    #list of all experiments itterations that had a fully developed flow
+    DevelopedItteration = DevelopedExperiments['Experiment'].to_list()
+
+    #creating dictionary and array for all experiments
+    experiments = []
+    experimentsConfig = {roughness: { 'list': DevelopedItteration},}
+
+    #Creating list of all experiments based on configuration in experimentConfig dictionary
+    for a, b in experimentsConfig.items():
+        for itt in b.get('list'):
+            experiments.append(f'{a}_rescan{itt}')
+
+    #Calculating friction factor for all experiments
+    counter = len(experiments)
+    currentIndex = 0
+    a = pd.DataFrame()
+    reynolds = []
+    friction = []
+    while currentIndex < counter:
+        experiment = experiments[currentIndex]
+        Data = Process_ZeroShift_Experiment(experiment[:2], experiment[3:])['before'].reset_index()
+        reynolds += Data['Reynolds Number'].tolist()
+        friction += Data['Friction Factor'].tolist()
+        currentIndex += 1
+
+    #creating dataframe for calculated experiments
+    allexperiments = pd.DataFrame()
+    allexperiments['Reynolds Number'] = reynolds
+    allexperiments['Friction Factor'] = friction
+
+    #Determining the constant line
+    fullyDeveloped = allexperiments.loc[allexperiments['Reynolds Number'] >= 3.8].set_index('Reynolds Number')
+    fullyDeveloped = fullyDeveloped.sort_values('Friction Factor')
+
+    constantMean = fullyDeveloped['Friction Factor'].mean()
+
+    #-------------------------------------------------------------------------------------------------------NIKURADSE
+    #reynolds range
+    num = np.arange(100,31600,100)
+    num1 = np.arange(1200,31600,100)
+
+    #mean line
+    mean = pd.DataFrame(num1, columns=['Reynolds Number'])
+    mean = np.log10(mean)
+    arr = np.full(len(num), constantMean, dtype=float)
+    mean['constant'] = pd.Series(arr)
+    mean = mean.set_index('Reynolds Number')
+
+    #hist line
+    data = np.array(fullyDeveloped)
+    hist, edges = np.histogram(data, bins=10)
+    max_index = np.array(hist).argmax()
+    indexer = hist[:max_index].sum()-1
+    histConst = fullyDeveloped['Friction Factor'].iloc[indexer]
+
+    hist = pd.DataFrame(num1, columns=['Reynolds Number'])
+    hist = np.log10(hist)
+    arr = np.full(len(num), histConst, dtype=float)
+    hist['constant'] = pd.Series(arr)
+    hist = hist.set_index('Reynolds Number')
+
+    #standard deviation
+    std = fullyDeveloped
+    std['Standard Deviation'] = (std['Friction Factor'] - std['Friction Factor'].mean())**2
+    sDeviationSum = std['Standard Deviation'].sum()
+    sDeviationDev = sDeviationSum/len(fullyDeveloped['Friction Factor'])
+    sDeviation = np.sqrt(sDeviationDev)
+
+    #creating dictionary to store nikuradse graphs
+    experimentResults = dict()
+    for experiment in experiments:
+        experimentResults[experiment] = Process_ZeroShift_Experiment(experiment[:2], experiment[3:])
+    legendEntries = []
+
+    #populating nikuradse plots
+    for experiment, experimentResult in experimentResults.items():
+            before, actual, after = [experimentResult[x] for x in ['before', 'actual', 'after']]
+            before = before.iloc[1:]
+            #plt.plot(before)
+            legendEntries.append('Transducer (%s)' % experiment)
+
+    print(constantMean)
+    print(hist['constant'].mean())
+    print(sDeviation)
+    result = {}
+    result['mean'] = mean
+    result['hist'] = hist
+    result['constant'] = fullyDeveloped
+    return(result)
