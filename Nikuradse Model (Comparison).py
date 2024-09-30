@@ -4,9 +4,9 @@ from os.path import exists
 #Creating dictionary for all experiments
 experiments = []
 experimentConfig = {
-    "2v": { 'list': [89, 90, 91, 92, 93, 94]},
+    "2v": { 'list': [89, 90, 91, 92, 93, 94, 95, 96]},
     #"2v": { 'list': [22, 89]},
-    "4v": { 'list': [18, 19, 20]},
+    "4v": { 'list': [18, 19, 20, 21]},
     #"8v": { 'list': [14]},
 }
 

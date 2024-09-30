@@ -3,7 +3,7 @@ from Functions import *
 
 #Experiment Description
 roughness = '4v'
-itteration = 'rescan20'
+itteration = 'rescan21'
 
 #Uploading Experiments to Database
 experiment = (f"{roughness}_{itteration}")
