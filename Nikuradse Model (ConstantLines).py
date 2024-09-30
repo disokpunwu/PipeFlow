@@ -1,8 +1,8 @@
 from Functions import *
 
 #path to excel file with developed status of experiments
-path = r'C:\Users\PipeFlow\Desktop\Research\20240517Rotation\20240809\Fully Developed Experiments.xlsx'
-roughness = '2v'
+path = r'C:\Users\PipeFlow\Desktop\Research\20240830 Nikuradse Diagram\20240830\Fully Developed Experiments (8v).xlsx'
+roughness = '8v'
 
 constant = constant_lines(path, roughness)
 
@@ -24,7 +24,7 @@ tur = tur.set_index('Reynolds Number')
 
 #adding nikuradse graph to subplot
 plt.plot(constant['mean'], color = 'blue')
-plt.plot(constant['hist'], color = 'blue')
+plt.plot(constant['hist'], color = 'orange')
 plt.plot(tur)
 plt.plot(lam)
 plt.ylabel('Friction Factor')

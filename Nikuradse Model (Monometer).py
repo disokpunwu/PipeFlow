@@ -2,9 +2,9 @@ from Functions import *
 
 experiments = []
 experimentConfig = {
-    "2v": { 'list': [68, 69, 70, 71, 72, 73]},
+    # "2v": { 'list': [68, 69, 70, 71, 72, 73]},
     # "4v": { 'list': [1,2,3]},
-    # "8v": { 'list': [1,2,3]},
+    "8v": { 'list': [35]},
 
     #"2v": { 'first': 1, 'last': 3 },
     #"4v": { 'first': 1, 'last': 3 },
