@@ -1,9 +1,7 @@
 from Functions import *
+from MainConfigurationFile import expermient, roughness, types
 
-#fetching file data
-experiment = ''
-roughness = ''
-types = ''
+
 
 # Retrieve Data from Experiment
 actualpath = getExperimentPath(roughness, experiment, experiment, types)

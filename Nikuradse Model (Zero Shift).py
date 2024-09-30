@@ -2,19 +2,7 @@ from Functions import *
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-
-experiments = []
-experimentConfig = {
-    "2v": { 'list': [85]},
-    # "4v": { 'list': [1,2,3]},
-    # "8v": { 'list': [1,2,3]},
-
-    #"2v": { 'first': 1, 'last': 3 },
-    #"4v": { 'first': 1, 'last': 3 },
-    #"8v": { 'first': 1, 'last': 3 },
-    
-}
+from MainConfigurationFile import experimentConfig, experiments
 
 for k, v in experimentConfig.items():
     if v.get('first') and v.get('last'):

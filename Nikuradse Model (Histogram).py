@@ -1,8 +1,6 @@
 from Functions import *
+from MainConfigurationFile import path
 
-#-------------------------------------------------------------------------------------------------------HISTOGRAM
-#path to excel file with developed status of experiments
-path = r'C:\Users\PipeFlow\Desktop\Research\20240517Rotation\20240809\Fully Developed Experiments.xlsx'
 
 #Filtering through experiments to return only developed experiments
 Excel = pd.read_excel(path)

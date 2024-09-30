@@ -1,11 +1,7 @@
 #importing functions
 from Functions import *
+from MainConfigurationFile import roughness, experiment, types, Step
 
-#fetching file data
-roughness = '5p'
-experiment = 'ReScan45'
-types = 'Protrussion'
-Step = 1
 
 # Retrieve Data from Experiment
 actualpath = getExperimentPath(roughness, experiment, experiment, types)

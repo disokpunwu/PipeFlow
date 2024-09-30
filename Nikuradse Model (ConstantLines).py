@@ -1,8 +1,6 @@
 from Functions import *
+from MainConfigurationFile import path, roughness
 
-#path to excel file with developed status of experiments
-path = r'C:\Users\PipeFlow\Desktop\Research\20240830 Nikuradse Diagram\20240830\Fully Developed Experiments (8v).xlsx'
-roughness = '8v'
 
 constant = constant_lines(path, roughness)
 

@@ -1,11 +1,7 @@
 from Functions import *
+from MainConfigurationFile import roughness, experiment
 
 
-#-------------------------------------------------------------------------2v
-
-#fetching file data
-roughness = ''
-experiment = ''
 #Retrieve Data from Experiment
 actualpath = getExperimentPath(roughness, experiment)
 pressure = tdms_df(actualpath)

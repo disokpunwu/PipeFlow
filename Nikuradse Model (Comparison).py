@@ -1,33 +1,5 @@
 from Functions import *
-
-
-#Creating dictionary for all experiments
-experiments = []
-experimentConfig = {
-
-    # #experiments
-    # "2v": { 'list': [89, 142, 148, 154, 155, 156]},
-    # "2v": { 'list': [89, 142, 143, 144, 145, 146, 147, 148, 149, 152]},
-    # "2v": { 'list': [111, 112, 115, 116, 121, 122, 127, 128]},
-    # "2v": { 'list': [129, 130, 131, 132, 133, 134, 135, 136, 137]},
-    # "2v": { 'list': [129, 130, 131, 132, 133, 134, 89, 90, 91, 92, 93, 94, 95, 96, 109, 110, 111, 112, 115, 116, 121, 122, 127, 128]},
-        
-
-    # #previous experiment lines
-    "2v": { 'list': [155]},
-    # "4v": { 'list': [2]},
-    # "8v": { 'list': [14]},
-
-    # #fully developed lines
-    # "2v": { 'list': [89, 90, 92, 93, 94, 95, 96, 109, 110, 111, 112, 115, 116, 121, 122, 127, 128]},
-    # "4v": { 'list': [13, 14, 17, 18, 19, 22, 23, 24, 25]},
-    # "8v": { 'list': [19, 20, 23, 24]},
-
-    # #Nikuradse Diagram
-    # "2v": { 'list': [130]},
-    # "4v": { 'list': [25]},
-    # "8v": { 'list': [42]},
-}
+from MainConfigurationFile import experiments, experimentConfig
 
 #Creating list of all experiments based on configuration in experimentConfig dictionary
 for k, v in experimentConfig.items():

@@ -1,19 +1,8 @@
 #importing functions
 from Functions import *
+from MainConfigurationFile import roughness, experiment, Step
+from MainConfigurationFile import StartTimes, EndTimes, ReservoirHeight, EntryPressure, ExitPressure, types
 
-
-#fetching file data
-roughness = '5p'
-experiment = 'ReScan45'
-types = 'Protrussion'
-Step = 1
-
-
-StartTimes      = []
-EndTimes        = []
-ReservoirHeight = []
-EntryPressure   = []
-ExitPressure    = []
 
 
 # Retrieve Data from Experiment

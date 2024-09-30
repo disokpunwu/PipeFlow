@@ -1,9 +1,6 @@
 #importing functions
 from Functions import *
-
-#fetching file data
-roughness = '2v'
-experiment = 'Rescan116'
+from MainConfigurationFile import roughness, experiment
 
 
 #Retrieve Data from Experiment

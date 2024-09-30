@@ -1,11 +1,6 @@
 #Importing Functions
 from Functions import *
-
-
-#Define experiment
-roughness = '2v'
-experiment = 'Rescan151'
-
+from MainConfigurationFile import roughness, experiment
 
 
 #Establsih Stages of Experiments

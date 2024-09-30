@@ -1,18 +1,7 @@
 #importing functions for psd
 from Functions import *
-
-
-#fetching file data
-roughness = '5p'
-experiment = 'ReScan45'
-types = 'Protrussion'
-Step = 1
-
-StartTimes      = []
-EndTimes        = []
-ReservoirHeight = []
-EntryPressure   = []
-ExitPressure    = []
+from MainConfigurationFile import roughness, experiment, Step
+from MainConfigurationFile import StartTimes, EndTimes, ReservoirHeight, EntryPressure, ExitPressure, types
 
 # Retrieve Data from Experiment
 actualpath = getExperimentPath(roughness, experiment, experiment, types)

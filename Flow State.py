@@ -1,22 +1,11 @@
 #importing Functions
 from Functions import *
-
-#Define experiment
-roughness = '2v'
-experiment = 'Rescan88'
+from MainConfigurationFile import roughness, experiment, Step, StartTimes, EndTimes, ReservoirHeight, EntryPressure, ExitPressure
 
 #Retrieve Data from Experiment
 actualpath = getExperimentPath(roughness, experiment)
 pressure = tdms_df(actualpath)
 
-
-Step = 1
-
-StartTimes      = []
-EndTimes        = []
-ReservoirHeight = []
-EntryPressure   = []
-ExitPressure    = []
 
 #pressure readings
 smooth = pressure_df_smooth(pressure)
