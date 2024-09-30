@@ -2,9 +2,9 @@
 from Functions import *
 
 #fetching file data
-experiment = '2v_rescan116'
-engine = create_sql_engine(experiment)
-(pressure) = read_table(engine, 'pressure')
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment, experiment)
+pressure = tdms_df(actualpath)
 
 
 #reynolds number
