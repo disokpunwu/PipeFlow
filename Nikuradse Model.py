@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 experiments = []
 experimentConfig = {
-    "2v": { 'list': [79]},
-    # "4v": { 'list': [1,2,3]},
+    #"2v": { 'list': [79]},
+    "4v": { 'list': [25]},
     # "8v": { 'list': [1,2,3]},
 
     #"2v": { 'first': 1, 'last': 3 },

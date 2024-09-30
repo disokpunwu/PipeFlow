@@ -1,12 +1,32 @@
 from Functions import *
-from os.path import exists
+
 
 #Creating dictionary for all experiments
 experiments = []
 experimentConfig = {
-    "2v": { 'list': [87, 88]},
-    # "4v": { 'list': [1,2,3]},
-    # "8v": { 'list': [1,2,3]},
+
+    # #experiments
+    # "2v": { 'list': [89, 142, 148, 154, 155, 156]},
+    # "2v": { 'list': [89, 142, 143, 144, 145, 146, 147, 148, 149, 152]},
+    # "2v": { 'list': [111, 112, 115, 116, 121, 122, 127, 128]},
+    # "2v": { 'list': [129, 130, 131, 132, 133, 134, 135, 136, 137]},
+    # "2v": { 'list': [129, 130, 131, 132, 133, 134, 89, 90, 91, 92, 93, 94, 95, 96, 109, 110, 111, 112, 115, 116, 121, 122, 127, 128]},
+        
+
+    # #previous experiment lines
+    "2v": { 'list': [155]},
+    # "4v": { 'list': [2]},
+    # "8v": { 'list': [14]},
+
+    # #fully developed lines
+    # "2v": { 'list': [89, 90, 92, 93, 94, 95, 96, 109, 110, 111, 112, 115, 116, 121, 122, 127, 128]},
+    # "4v": { 'list': [13, 14, 17, 18, 19, 22, 23, 24, 25]},
+    # "8v": { 'list': [19, 20, 23, 24]},
+
+    # #Nikuradse Diagram
+    # "2v": { 'list': [130]},
+    # "4v": { 'list': [25]},
+    # "8v": { 'list': [42]},
 }
 
 #Creating list of all experiments based on configuration in experimentConfig dictionary
@@ -38,9 +58,9 @@ for k, v in ExcelSearch.items():
     else:
         continue
 
-# #putting remaining experiments in a list
-# Remainder = [x for x in experiments if x not in Zeroshifts]
-# Regular = [x for x in Remainder if x not in Excels]
+#putting remaining experiments in a list
+Remainder = [x for x in experiments if x not in Zeroshifts]
+experiments = [x for x in Remainder if x not in Excels]
 
 #------------------------------64/re & Blasius
 #reynolds range
@@ -58,6 +78,14 @@ tur = pd.DataFrame(num1, columns=['Reynolds Number'])
 tur['blasius'] = .316/(tur['Reynolds Number']**.25)
 tur = np.log10(tur)
 tur = tur.set_index('Reynolds Number')
+
+
+legendEntries = []
+legendEntries.append('64/Re')
+legendEntries.append('Blasius')
+
+plt.plot(lam)
+plt.plot(tur)
 #-----------------------------------------------------Graph
 
 #Plots for zeroshift experiments
@@ -65,16 +93,16 @@ if Zeroshifts:
     ZeroShiftResults = dict()
     for Zeroshift in Zeroshifts:
         ZeroShiftResults[Zeroshift] = Process_ZeroShift_Experiment(Zeroshift[:2], Zeroshift[3:])
-        ZeroShiftResults[Zeroshift] = ZeroShiftResults[Zeroshift]
     print(ZeroShiftResults)
-    legendEntries = []
     for Zeroshift, ZeroShiftResults in ZeroShiftResults.items():
         before, actual, after = [ZeroShiftResults[x] for x in ['before', 'actual', 'after']]
         before = before.iloc[1:]
-        plt.plot(before)
-        legendEntries.append('Transducer (%s)' % Zeroshift)
+        #plt.plot(before.index, before['Friction Factor'])
+        plt.errorbar(before.index, before['Friction Factor'], yerr = before['Error'])
+        legendEntries.append('Transducer (%s)' % Zeroshift)   
 else:
     print("No zeroshift experiments found.")
+
 
 #Plots for excel experiments
 if Excels:
@@ -84,19 +112,40 @@ if Excels:
     print(ExcelResults)
     for Excel, ExcelResults in ExcelResults.items():
         Friction = [ExcelResults[x] for x in ['Friction']]
-        plt.plot(ExcelResults)
+        plt.plot(ExcelResults.index, ExcelResults['Friction'])
         legendEntries.append('Monometer (%s)' % Excel)
 else:
     print("No excel experiments found.")
+# if Excels:
+#     ExcelResults = dict()
+#     for Excel in Excels:
+#         ExcelResults[Excel] = Process_Excel_Experiemnt(Excel[:2], Excel[3:])
+    # for Excel, ExcelResults in ExcelResults.items():
+    #     Friction = [ExcelResults[x] for x in ['Friction']]
+    #     plt.scatter(ExcelResults.index, ExcelResults, s=1)
 
-legendEntries.append('64/Re')
-legendEntries.append('Blasius')
+
+#Plots for regular experiments
+results = dict()
+for experiment in experiments:
+    results[experiment] = process_experiment(experiment)
+#print(results)
+for experiment, result in results.items():
+    smooth, rough = [result[x] for x in ['smooth', 'rough']]
+    # plt.plot(smooth)
+    # legendEntries.append("Smooth (%s)" % experiment)
+    plt.plot(rough)
+    legendEntries.append('Actual (%s)' % experiment)
+# for experiment, result in results.items():
+#     smooth, rough = [result[x] for x in ['smooth', 'rough']]
+#     #plt.scatter(smooth.index, smooth, s=1,label='_Hidden label')
+#     plt.scatter(rough.index, rough, s=1)
 
 
-plt.plot(lam)
-plt.plot(tur)
 plt.xlabel('log Re')
 plt.ylabel('log f')
 plt.legend(legendEntries)
 plt.grid() 
+plt.xlim(3.4, 4.2)
+plt.ylim(-3, 0)
 plt.show()

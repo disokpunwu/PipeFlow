@@ -4,9 +4,11 @@ from Functions import *
 #-------------------------------------------------------------------------2v
 
 #fetching file data
+roughness = ''
 experiment = ''
-engine = create_sql_engine(experiment)
-(pressure) = read_table(engine, 'pressure')
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure = tdms_df(actualpath)
 
 #reynolds range
 num = np.arange(100,10100,100)
@@ -47,9 +49,11 @@ b = np.log10(b)
 #----------------------------------------------------------------------5p
 
 #fetching file data
+roughness = ''
 experiment = ''
-engine = create_sql_engine(experiment)
-(pressure) = read_table(engine, 'pressure')
+#Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment)
+pressure = tdms_df(actualpath)
 
 #reynolds range
 num = np.arange(100,10100,100)

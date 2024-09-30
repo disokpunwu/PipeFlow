@@ -2,7 +2,19 @@ from Functions import *
 
 #fetching file data
 experiment = ''
-(pressure, laser1, laser2) = read_tables(experiment, ['pressure', 'laser1', 'laser2'])
+roughness = ''
+types = ''
+
+# Retrieve Data from Experiment
+actualpath = getExperimentPath(roughness, experiment, experiment, types)
+print(actualpath)
+pressure = tdms_df(actualpath)
+
+#Retrieve Data from laser
+laserpath1 = getLaserPath(roughness, experiment,'1', types)
+laser1 = laser_df(laserpath1)
+laserpath2 = getLaserPath(roughness, experiment, '2', types)
+laser2 = laser_df(laserpath2)
 
 #creating std for pressure data
 smooth = pressure_df_smooth(pressure)
