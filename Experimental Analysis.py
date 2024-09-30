@@ -1,9 +1,10 @@
 #Importing Functions
 from Functions import *
 
+
 #Define experiment
-roughness = '4v'
-experiment = 'Rescan15'
+roughness = '2v'
+experiment = 'Rescan151'
 
 
 

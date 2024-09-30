@@ -2,6 +2,10 @@
 from Functions import *
 
 #fetching file data
+roughness = '2v'
+experiment = 'Rescan116'
+
+
 #Retrieve Data from Experiment
 actualpath = getExperimentPath(roughness, experiment, experiment)
 pressure = tdms_df(actualpath)
