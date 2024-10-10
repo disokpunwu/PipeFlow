@@ -80,6 +80,8 @@ plt.style.use("bmh")
 for experiment, experimentResult in experimentResults.items():
         before, actual, after = [experimentResult[x] for x in ['before', 'actual', 'after']]
         before = before.iloc[1:]
+        before = before['Friction Factor']
+        print(before)
         ax[0].plot(before)
         legendEntries.append('Transducer (%s)' % experiment)
 
