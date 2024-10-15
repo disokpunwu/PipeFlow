@@ -1,5 +1,5 @@
 from Functions import *
-from MainConfigurationFile import path
+from MainConfigurationFile import path, constant
 
 
 #Filtering through experiments to return only developed experiments
@@ -37,7 +37,7 @@ allexperiments['Reynolds Number'] = reynolds
 allexperiments['Friction Factor'] = friction
 
 #filtering experiments that lay on the constant line
-constant = allexperiments.loc[allexperiments['Reynolds Number'] >= 3.8].set_index('Reynolds Number')
+constant = allexperiments.loc[allexperiments['Reynolds Number'] >= constant].set_index('Reynolds Number')
 
 
 #-------------------------------------------------------------------------------------------------------NIKURADSE
@@ -69,8 +69,6 @@ fig, ax = plt.subplots(2, 1, figsize = (6,4))
 constant['Friction Factor'].plot(kind = 'hist', density = True, bins= 10)
 constant['Friction Factor'].plot(kind='kde')
 ax[1].set_xlabel('Friction Factor')
-ax[1].set_xlim(-1.135, -1.1)
-ax[1].set_ylim(0,100)
 ax[1].set_yticks([])
 ax[1].tick_params(left=False, bottom=False)
 plt.style.use("bmh")
@@ -85,6 +83,10 @@ for experiment, experimentResult in experimentResults.items():
         ax[0].plot(before)
         legendEntries.append('Transducer (%s)' % experiment)
 
+
+#max and min values of constant values 
+print(constant.max())
+print(constant.min())
 
 
 #adding nikuradse graph to subplot
